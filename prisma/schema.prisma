@@ -15,7 +15,22 @@ model Session {
   createdAt DateTime      @default(now())
   expiresAt DateTime
 
+  matches      SessionMatch[]
   participants Participant[]
+}
+
+model SessionMatch {
+  id         String   @id @default(cuid())
+  sessionId  String
+  session    Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  matchIndex Int
+  homeTeam   String
+  awayTeam   String
+  league     String
+  kickoff    DateTime
+
+  @@unique([sessionId, matchIndex])
+  @@index([sessionId])
 }
 
 model Participant {
@@ -27,8 +42,23 @@ model Participant {
   isHost    Boolean @default(false)
   submitted Boolean @default(false)
 
+  selections Selection[]
+
   @@unique([sessionId, name])
   @@index([sessionId])
+}
+
+model Selection {
+  id            String      @id @default(cuid())
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  matchIndex    Int
+  home          Boolean     @default(false)
+  draw          Boolean     @default(false)
+  away          Boolean     @default(false)
+
+  @@unique([participantId, matchIndex])
+  @@index([participantId])
 }
 
 enum SessionStatus {
