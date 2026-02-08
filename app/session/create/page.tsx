@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Loader2, Check } from 'lucide-react'
+import { ArrowLeft, Loader2, Check, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
@@ -12,31 +12,63 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { getAvailableMatches, formatKickoff } from '@/lib/matches'
+import { formatKickoff } from '@/lib/matches'
 
 const BET_AMOUNTS = [1, 2, 5, 10] as const
 
-function getHostName() {
-  if (typeof window === 'undefined') return ''
-  return sessionStorage.getItem('hostName') ?? ''
+interface MatchFromApi {
+  eventNumber: number
+  homeTeam: string
+  awayTeam: string
+  league: string
+  kickoff: string
+  odds: { home: string; draw: string; away: string }
+}
+
+interface DrawInfo {
+  drawNumber: number
+  drawComment: string
+  closeTime: string
+  jackpot: string | null
+  matches: MatchFromApi[]
 }
 
 export default function CreateSessionPage() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
-  const [hostName] = useState(getHostName)
+  const [hostName, setHostName] = useState<string | null>(null)
   const [betPerRow, setBetPerRow] = useState<number>(1)
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(
-    () => new Set(getAvailableMatches().map((m) => m.id))
-  )
+  const [draw, setDraw] = useState<DrawInfo | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [error, setError] = useState('')
 
-  const matches = getAvailableMatches()
+  // Read sessionStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    const stored = sessionStorage.getItem('hostName')
+    if (!stored) {
+      router.replace('/')
+      return
+    }
+    setHostName(stored)
+    fetchMatches()
+  }, [router])
 
-  if (!hostName) {
-    router.replace('/')
-    return null
+  async function fetchMatches() {
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/draws')
+      if (!res.ok) throw new Error()
+      const data: DrawInfo = await res.json()
+      setDraw(data)
+      setSelectedIds(new Set(data.matches.map((m) => m.eventNumber)))
+    } catch {
+      setError('Kunde inte hämta matcher. Försök igen.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   function toggleMatch(id: number) {
@@ -49,10 +81,10 @@ export default function CreateSessionPage() {
   }
 
   function handleCreate() {
-    if (selectedIds.size === 0) return
+    if (!draw || !hostName || selectedIds.size === 0) return
 
-    const selectedMatches = matches
-      .filter((m) => selectedIds.has(m.id))
+    const selectedMatches = draw.matches
+      .filter((m) => selectedIds.has(m.eventNumber))
       .map(({ homeTeam, awayTeam, league, kickoff }) => ({
         homeTeam,
         awayTeam,
@@ -87,6 +119,9 @@ export default function CreateSessionPage() {
       }
     })
   }
+
+  // Show nothing until we've checked sessionStorage on the client
+  if (hostName === null) return null
 
   return (
     <div className="flex min-h-dvh flex-col items-center px-6 py-10">
@@ -134,66 +169,100 @@ export default function CreateSessionPage() {
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm">
-                Matcher ({selectedIds.size} valda)
-              </CardTitle>
-              <Button
-                variant="link"
-                size="sm"
-                className="h-auto p-0 text-xs"
-                onClick={() =>
-                  setSelectedIds(new Set(matches.map((m) => m.id)))
-                }
-              >
-                Välj alla
-              </Button>
+              <div>
+                <CardTitle className="text-sm">
+                  {draw ? `Omgång ${draw.drawNumber}` : 'Matcher'}
+                </CardTitle>
+                {draw?.jackpot && (
+                  <CardDescription className="mt-0.5">
+                    Jackpot: {draw.jackpot} kr
+                  </CardDescription>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {draw && (
+                  <span className="text-muted-foreground text-xs">
+                    {selectedIds.size} valda
+                  </span>
+                )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={fetchMatches}
+                  disabled={loading}
+                >
+                  <RefreshCw
+                    className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`}
+                  />
+                </Button>
+              </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-1.5">
-            {matches.map((match) => {
-              const selected = selectedIds.has(match.id)
-              return (
-                <button
-                  key={match.id}
-                  onClick={() => toggleMatch(match.id)}
-                  className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors ${
-                    selected
-                      ? 'border-primary/15 bg-primary/5'
-                      : 'bg-muted/30 hover:bg-muted/50'
-                  }`}
-                >
-                  <div
-                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
-                      selected
-                        ? 'border-primary bg-primary'
-                        : 'border-muted-foreground/30'
-                    }`}
-                  >
-                    {selected && (
-                      <Check
-                        className="text-primary-foreground h-3 w-3"
-                        strokeWidth={3}
-                      />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className={`truncate text-sm ${
-                        selected ? 'text-foreground' : 'text-muted-foreground'
+          <CardContent>
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="text-muted-foreground h-5 w-5 animate-spin" />
+              </div>
+            ) : draw ? (
+              <div className="space-y-1.5">
+                {draw.matches.map((match) => {
+                  const selected = selectedIds.has(match.eventNumber)
+                  return (
+                    <button
+                      key={match.eventNumber}
+                      onClick={() => toggleMatch(match.eventNumber)}
+                      className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors ${
+                        selected
+                          ? 'border-primary/15 bg-primary/5'
+                          : 'bg-muted/30 hover:bg-muted/50'
                       }`}
                     >
-                      {match.homeTeam} — {match.awayTeam}
-                    </p>
-                    <p className="text-muted-foreground text-[11px]">
-                      {match.league}
-                    </p>
-                  </div>
-                  <span className="text-muted-foreground shrink-0 text-[11px]">
-                    {formatKickoff(match.kickoff)}
-                  </span>
-                </button>
-              )
-            })}
+                      <div
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
+                          selected
+                            ? 'border-primary bg-primary'
+                            : 'border-muted-foreground/30'
+                        }`}
+                      >
+                        {selected && (
+                          <Check
+                            className="text-primary-foreground h-3 w-3"
+                            strokeWidth={3}
+                          />
+                        )}
+                      </div>
+                      <span className="text-muted-foreground w-5 shrink-0 text-center text-xs">
+                        {match.eventNumber}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={`truncate text-sm ${
+                            selected
+                              ? 'text-foreground'
+                              : 'text-muted-foreground'
+                          }`}
+                        >
+                          {match.homeTeam} — {match.awayTeam}
+                        </p>
+                        <p className="text-muted-foreground text-[11px]">
+                          {match.league}
+                        </p>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <span className="text-muted-foreground text-[11px]">
+                          {formatKickoff(match.kickoff)}
+                        </span>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-muted-foreground py-8 text-center text-sm">
+                Inga matcher tillgängliga just nu.
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -202,7 +271,7 @@ export default function CreateSessionPage() {
         <Button
           size="lg"
           className="w-full"
-          disabled={selectedIds.size === 0 || isPending}
+          disabled={selectedIds.size === 0 || isPending || loading}
           onClick={handleCreate}
         >
           {isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
