@@ -8,15 +8,18 @@ datasource db {
 }
 
 model Session {
-  id        String        @id @default(cuid())
-  code      String        @unique
-  betPerRow Int           @default(1)
-  status    SessionStatus @default(BETTING)
-  createdAt DateTime      @default(now())
-  expiresAt DateTime
+  id          String        @id @default(cuid())
+  code        String        @unique
+  status      SessionStatus @default(BETTING)
+  createdAt   DateTime      @default(now())
+  closesAt    DateTime
+  eventType   String        // "stryktipset" | "europatipset"
+  drawNumber  Int
 
   matches      SessionMatch[]
   participants Participant[]
+
+  @@index([eventType, drawNumber])
 }
 
 model SessionMatch {

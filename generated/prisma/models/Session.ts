@@ -27,75 +27,81 @@ export type AggregateSession = {
 }
 
 export type SessionAvgAggregateOutputType = {
-  betPerRow: number | null
+  drawNumber: number | null
 }
 
 export type SessionSumAggregateOutputType = {
-  betPerRow: number | null
+  drawNumber: number | null
 }
 
 export type SessionMinAggregateOutputType = {
   id: string | null
   code: string | null
-  betPerRow: number | null
   status: $Enums.SessionStatus | null
   createdAt: Date | null
-  expiresAt: Date | null
+  closesAt: Date | null
+  eventType: string | null
+  drawNumber: number | null
 }
 
 export type SessionMaxAggregateOutputType = {
   id: string | null
   code: string | null
-  betPerRow: number | null
   status: $Enums.SessionStatus | null
   createdAt: Date | null
-  expiresAt: Date | null
+  closesAt: Date | null
+  eventType: string | null
+  drawNumber: number | null
 }
 
 export type SessionCountAggregateOutputType = {
   id: number
   code: number
-  betPerRow: number
   status: number
   createdAt: number
-  expiresAt: number
+  closesAt: number
+  eventType: number
+  drawNumber: number
   _all: number
 }
 
 
 export type SessionAvgAggregateInputType = {
-  betPerRow?: true
+  drawNumber?: true
 }
 
 export type SessionSumAggregateInputType = {
-  betPerRow?: true
+  drawNumber?: true
 }
 
 export type SessionMinAggregateInputType = {
   id?: true
   code?: true
-  betPerRow?: true
   status?: true
   createdAt?: true
-  expiresAt?: true
+  closesAt?: true
+  eventType?: true
+  drawNumber?: true
 }
 
 export type SessionMaxAggregateInputType = {
   id?: true
   code?: true
-  betPerRow?: true
   status?: true
   createdAt?: true
-  expiresAt?: true
+  closesAt?: true
+  eventType?: true
+  drawNumber?: true
 }
 
 export type SessionCountAggregateInputType = {
   id?: true
   code?: true
-  betPerRow?: true
   status?: true
   createdAt?: true
-  expiresAt?: true
+  closesAt?: true
+  eventType?: true
+  drawNumber?: true
   _all?: true
 }
 
@@ -188,10 +194,11 @@ export type SessionGroupByArgs<ExtArgs extends runtime.Types.Extensions.Internal
 export type SessionGroupByOutputType = {
   id: string
   code: string
-  betPerRow: number
   status: $Enums.SessionStatus
   createdAt: Date
-  expiresAt: Date
+  closesAt: Date
+  eventType: string
+  drawNumber: number
   _count: SessionCountAggregateOutputType | null
   _avg: SessionAvgAggregateOutputType | null
   _sum: SessionSumAggregateOutputType | null
@@ -220,10 +227,11 @@ export type SessionWhereInput = {
   NOT?: Prisma.SessionWhereInput | Prisma.SessionWhereInput[]
   id?: Prisma.StringFilter<"Session"> | string
   code?: Prisma.StringFilter<"Session"> | string
-  betPerRow?: Prisma.IntFilter<"Session"> | number
   status?: Prisma.EnumSessionStatusFilter<"Session"> | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFilter<"Session"> | Date | string
-  expiresAt?: Prisma.DateTimeFilter<"Session"> | Date | string
+  closesAt?: Prisma.DateTimeFilter<"Session"> | Date | string
+  eventType?: Prisma.StringFilter<"Session"> | string
+  drawNumber?: Prisma.IntFilter<"Session"> | number
   matches?: Prisma.SessionMatchListRelationFilter
   participants?: Prisma.ParticipantListRelationFilter
 }
@@ -231,10 +239,11 @@ export type SessionWhereInput = {
 export type SessionOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   code?: Prisma.SortOrder
-  betPerRow?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  expiresAt?: Prisma.SortOrder
+  closesAt?: Prisma.SortOrder
+  eventType?: Prisma.SortOrder
+  drawNumber?: Prisma.SortOrder
   matches?: Prisma.SessionMatchOrderByRelationAggregateInput
   participants?: Prisma.ParticipantOrderByRelationAggregateInput
 }
@@ -245,10 +254,11 @@ export type SessionWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.SessionWhereInput | Prisma.SessionWhereInput[]
   OR?: Prisma.SessionWhereInput[]
   NOT?: Prisma.SessionWhereInput | Prisma.SessionWhereInput[]
-  betPerRow?: Prisma.IntFilter<"Session"> | number
   status?: Prisma.EnumSessionStatusFilter<"Session"> | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFilter<"Session"> | Date | string
-  expiresAt?: Prisma.DateTimeFilter<"Session"> | Date | string
+  closesAt?: Prisma.DateTimeFilter<"Session"> | Date | string
+  eventType?: Prisma.StringFilter<"Session"> | string
+  drawNumber?: Prisma.IntFilter<"Session"> | number
   matches?: Prisma.SessionMatchListRelationFilter
   participants?: Prisma.ParticipantListRelationFilter
 }, "id" | "code">
@@ -256,10 +266,11 @@ export type SessionWhereUniqueInput = Prisma.AtLeast<{
 export type SessionOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   code?: Prisma.SortOrder
-  betPerRow?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  expiresAt?: Prisma.SortOrder
+  closesAt?: Prisma.SortOrder
+  eventType?: Prisma.SortOrder
+  drawNumber?: Prisma.SortOrder
   _count?: Prisma.SessionCountOrderByAggregateInput
   _avg?: Prisma.SessionAvgOrderByAggregateInput
   _max?: Prisma.SessionMaxOrderByAggregateInput
@@ -273,19 +284,21 @@ export type SessionScalarWhereWithAggregatesInput = {
   NOT?: Prisma.SessionScalarWhereWithAggregatesInput | Prisma.SessionScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Session"> | string
   code?: Prisma.StringWithAggregatesFilter<"Session"> | string
-  betPerRow?: Prisma.IntWithAggregatesFilter<"Session"> | number
   status?: Prisma.EnumSessionStatusWithAggregatesFilter<"Session"> | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Session"> | Date | string
-  expiresAt?: Prisma.DateTimeWithAggregatesFilter<"Session"> | Date | string
+  closesAt?: Prisma.DateTimeWithAggregatesFilter<"Session"> | Date | string
+  eventType?: Prisma.StringWithAggregatesFilter<"Session"> | string
+  drawNumber?: Prisma.IntWithAggregatesFilter<"Session"> | number
 }
 
 export type SessionCreateInput = {
   id?: string
   code: string
-  betPerRow?: number
   status?: $Enums.SessionStatus
   createdAt?: Date | string
-  expiresAt: Date | string
+  closesAt: Date | string
+  eventType: string
+  drawNumber: number
   matches?: Prisma.SessionMatchCreateNestedManyWithoutSessionInput
   participants?: Prisma.ParticipantCreateNestedManyWithoutSessionInput
 }
@@ -293,10 +306,11 @@ export type SessionCreateInput = {
 export type SessionUncheckedCreateInput = {
   id?: string
   code: string
-  betPerRow?: number
   status?: $Enums.SessionStatus
   createdAt?: Date | string
-  expiresAt: Date | string
+  closesAt: Date | string
+  eventType: string
+  drawNumber: number
   matches?: Prisma.SessionMatchUncheckedCreateNestedManyWithoutSessionInput
   participants?: Prisma.ParticipantUncheckedCreateNestedManyWithoutSessionInput
 }
@@ -304,10 +318,11 @@ export type SessionUncheckedCreateInput = {
 export type SessionUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
-  betPerRow?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventType?: Prisma.StringFieldUpdateOperationsInput | string
+  drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
   matches?: Prisma.SessionMatchUpdateManyWithoutSessionNestedInput
   participants?: Prisma.ParticipantUpdateManyWithoutSessionNestedInput
 }
@@ -315,10 +330,11 @@ export type SessionUpdateInput = {
 export type SessionUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
-  betPerRow?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventType?: Prisma.StringFieldUpdateOperationsInput | string
+  drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
   matches?: Prisma.SessionMatchUncheckedUpdateManyWithoutSessionNestedInput
   participants?: Prisma.ParticipantUncheckedUpdateManyWithoutSessionNestedInput
 }
@@ -326,63 +342,69 @@ export type SessionUncheckedUpdateInput = {
 export type SessionCreateManyInput = {
   id?: string
   code: string
-  betPerRow?: number
   status?: $Enums.SessionStatus
   createdAt?: Date | string
-  expiresAt: Date | string
+  closesAt: Date | string
+  eventType: string
+  drawNumber: number
 }
 
 export type SessionUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
-  betPerRow?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventType?: Prisma.StringFieldUpdateOperationsInput | string
+  drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type SessionUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
-  betPerRow?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventType?: Prisma.StringFieldUpdateOperationsInput | string
+  drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
 }
 
 export type SessionCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   code?: Prisma.SortOrder
-  betPerRow?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  expiresAt?: Prisma.SortOrder
+  closesAt?: Prisma.SortOrder
+  eventType?: Prisma.SortOrder
+  drawNumber?: Prisma.SortOrder
 }
 
 export type SessionAvgOrderByAggregateInput = {
-  betPerRow?: Prisma.SortOrder
+  drawNumber?: Prisma.SortOrder
 }
 
 export type SessionMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   code?: Prisma.SortOrder
-  betPerRow?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  expiresAt?: Prisma.SortOrder
+  closesAt?: Prisma.SortOrder
+  eventType?: Prisma.SortOrder
+  drawNumber?: Prisma.SortOrder
 }
 
 export type SessionMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   code?: Prisma.SortOrder
-  betPerRow?: Prisma.SortOrder
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  expiresAt?: Prisma.SortOrder
+  closesAt?: Prisma.SortOrder
+  eventType?: Prisma.SortOrder
+  drawNumber?: Prisma.SortOrder
 }
 
 export type SessionSumOrderByAggregateInput = {
-  betPerRow?: Prisma.SortOrder
+  drawNumber?: Prisma.SortOrder
 }
 
 export type SessionScalarRelationFilter = {
@@ -394,20 +416,20 @@ export type StringFieldUpdateOperationsInput = {
   set?: string
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type EnumSessionStatusFieldUpdateOperationsInput = {
   set?: $Enums.SessionStatus
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
+}
+
+export type IntFieldUpdateOperationsInput = {
+  set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type SessionCreateNestedOneWithoutMatchesInput = {
@@ -441,20 +463,22 @@ export type SessionUpdateOneRequiredWithoutParticipantsNestedInput = {
 export type SessionCreateWithoutMatchesInput = {
   id?: string
   code: string
-  betPerRow?: number
   status?: $Enums.SessionStatus
   createdAt?: Date | string
-  expiresAt: Date | string
+  closesAt: Date | string
+  eventType: string
+  drawNumber: number
   participants?: Prisma.ParticipantCreateNestedManyWithoutSessionInput
 }
 
 export type SessionUncheckedCreateWithoutMatchesInput = {
   id?: string
   code: string
-  betPerRow?: number
   status?: $Enums.SessionStatus
   createdAt?: Date | string
-  expiresAt: Date | string
+  closesAt: Date | string
+  eventType: string
+  drawNumber: number
   participants?: Prisma.ParticipantUncheckedCreateNestedManyWithoutSessionInput
 }
 
@@ -477,40 +501,44 @@ export type SessionUpdateToOneWithWhereWithoutMatchesInput = {
 export type SessionUpdateWithoutMatchesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
-  betPerRow?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventType?: Prisma.StringFieldUpdateOperationsInput | string
+  drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
   participants?: Prisma.ParticipantUpdateManyWithoutSessionNestedInput
 }
 
 export type SessionUncheckedUpdateWithoutMatchesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
-  betPerRow?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventType?: Prisma.StringFieldUpdateOperationsInput | string
+  drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
   participants?: Prisma.ParticipantUncheckedUpdateManyWithoutSessionNestedInput
 }
 
 export type SessionCreateWithoutParticipantsInput = {
   id?: string
   code: string
-  betPerRow?: number
   status?: $Enums.SessionStatus
   createdAt?: Date | string
-  expiresAt: Date | string
+  closesAt: Date | string
+  eventType: string
+  drawNumber: number
   matches?: Prisma.SessionMatchCreateNestedManyWithoutSessionInput
 }
 
 export type SessionUncheckedCreateWithoutParticipantsInput = {
   id?: string
   code: string
-  betPerRow?: number
   status?: $Enums.SessionStatus
   createdAt?: Date | string
-  expiresAt: Date | string
+  closesAt: Date | string
+  eventType: string
+  drawNumber: number
   matches?: Prisma.SessionMatchUncheckedCreateNestedManyWithoutSessionInput
 }
 
@@ -533,20 +561,22 @@ export type SessionUpdateToOneWithWhereWithoutParticipantsInput = {
 export type SessionUpdateWithoutParticipantsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
-  betPerRow?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventType?: Prisma.StringFieldUpdateOperationsInput | string
+  drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
   matches?: Prisma.SessionMatchUpdateManyWithoutSessionNestedInput
 }
 
 export type SessionUncheckedUpdateWithoutParticipantsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   code?: Prisma.StringFieldUpdateOperationsInput | string
-  betPerRow?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  eventType?: Prisma.StringFieldUpdateOperationsInput | string
+  drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
   matches?: Prisma.SessionMatchUncheckedUpdateManyWithoutSessionNestedInput
 }
 
@@ -593,10 +623,11 @@ export type SessionCountOutputTypeCountParticipantsArgs<ExtArgs extends runtime.
 export type SessionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   code?: boolean
-  betPerRow?: boolean
   status?: boolean
   createdAt?: boolean
-  expiresAt?: boolean
+  closesAt?: boolean
+  eventType?: boolean
+  drawNumber?: boolean
   matches?: boolean | Prisma.Session$matchesArgs<ExtArgs>
   participants?: boolean | Prisma.Session$participantsArgs<ExtArgs>
   _count?: boolean | Prisma.SessionCountOutputTypeDefaultArgs<ExtArgs>
@@ -605,31 +636,34 @@ export type SessionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
 export type SessionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   code?: boolean
-  betPerRow?: boolean
   status?: boolean
   createdAt?: boolean
-  expiresAt?: boolean
+  closesAt?: boolean
+  eventType?: boolean
+  drawNumber?: boolean
 }, ExtArgs["result"]["session"]>
 
 export type SessionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   code?: boolean
-  betPerRow?: boolean
   status?: boolean
   createdAt?: boolean
-  expiresAt?: boolean
+  closesAt?: boolean
+  eventType?: boolean
+  drawNumber?: boolean
 }, ExtArgs["result"]["session"]>
 
 export type SessionSelectScalar = {
   id?: boolean
   code?: boolean
-  betPerRow?: boolean
   status?: boolean
   createdAt?: boolean
-  expiresAt?: boolean
+  closesAt?: boolean
+  eventType?: boolean
+  drawNumber?: boolean
 }
 
-export type SessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "betPerRow" | "status" | "createdAt" | "expiresAt", ExtArgs["result"]["session"]>
+export type SessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "status" | "createdAt" | "closesAt" | "eventType" | "drawNumber", ExtArgs["result"]["session"]>
 export type SessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   matches?: boolean | Prisma.Session$matchesArgs<ExtArgs>
   participants?: boolean | Prisma.Session$participantsArgs<ExtArgs>
@@ -647,10 +681,11 @@ export type $SessionPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     code: string
-    betPerRow: number
     status: $Enums.SessionStatus
     createdAt: Date
-    expiresAt: Date
+    closesAt: Date
+    eventType: string
+    drawNumber: number
   }, ExtArgs["result"]["session"]>
   composites: {}
 }
@@ -1078,10 +1113,11 @@ export interface Prisma__SessionClient<T, Null = never, ExtArgs extends runtime.
 export interface SessionFieldRefs {
   readonly id: Prisma.FieldRef<"Session", 'String'>
   readonly code: Prisma.FieldRef<"Session", 'String'>
-  readonly betPerRow: Prisma.FieldRef<"Session", 'Int'>
   readonly status: Prisma.FieldRef<"Session", 'SessionStatus'>
   readonly createdAt: Prisma.FieldRef<"Session", 'DateTime'>
-  readonly expiresAt: Prisma.FieldRef<"Session", 'DateTime'>
+  readonly closesAt: Prisma.FieldRef<"Session", 'DateTime'>
+  readonly eventType: Prisma.FieldRef<"Session", 'String'>
+  readonly drawNumber: Prisma.FieldRef<"Session", 'Int'>
 }
     
 

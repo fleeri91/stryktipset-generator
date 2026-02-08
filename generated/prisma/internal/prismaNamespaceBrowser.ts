@@ -76,10 +76,11 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const SessionScalarFieldEnum = {
   id: 'id',
   code: 'code',
-  betPerRow: 'betPerRow',
   status: 'status',
   createdAt: 'createdAt',
-  expiresAt: 'expiresAt'
+  closesAt: 'closesAt',
+  eventType: 'eventType',
+  drawNumber: 'drawNumber'
 } as const
 
 export type SessionScalarFieldEnum = (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum]
