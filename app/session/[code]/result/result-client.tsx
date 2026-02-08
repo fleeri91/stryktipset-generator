@@ -163,10 +163,10 @@ export function ResultClient({
                           className={`h-10 w-10 disabled:opacity-100 ${
                             isSelected
                               ? pickCountColor(selectedCount)
-                              : 'text-muted-foreground/20 border-transparent bg-transparent'
+                              : 'text-muted-foreground border-transparent bg-transparent'
                           }`}
                         >
-                          {isSelected ? label : ''}
+                          {label}
                         </ToggleGroupItem>
                       )
                     })}
