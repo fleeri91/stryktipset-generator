@@ -20,7 +20,7 @@ const config: runtime.GetPrismaClientConfig = {
   "clientVersion": "7.3.0",
   "engineVersion": "9d6ad21cbbceab97458517b147a6a09ff43aa735",
   "activeProvider": "postgresql",
-  "inlineSchema": "generator client {\n  provider = \"prisma-client\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel Session {\n  id        String        @id @default(cuid())\n  code      String        @unique\n  betPerRow Int           @default(1)\n  status    SessionStatus @default(BETTING)\n  createdAt DateTime      @default(now())\n  expiresAt DateTime\n\n  participants Participant[]\n}\n\nmodel Participant {\n  id        String  @id @default(cuid())\n  sessionId String\n  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)\n  name      String\n  token     String  @unique @default(cuid())\n  isHost    Boolean @default(false)\n  submitted Boolean @default(false)\n\n  @@unique([sessionId, name])\n  @@index([sessionId])\n}\n\nenum SessionStatus {\n  BETTING\n  GENERATED\n}\n",
+  "inlineSchema": "generator client {\n  provider = \"prisma-client\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n}\n\nmodel Session {\n  id        String        @id @default(cuid())\n  code      String        @unique\n  betPerRow Int           @default(1)\n  status    SessionStatus @default(BETTING)\n  createdAt DateTime      @default(now())\n  expiresAt DateTime\n\n  matches      SessionMatch[]\n  participants Participant[]\n}\n\nmodel SessionMatch {\n  id         String   @id @default(cuid())\n  sessionId  String\n  session    Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)\n  matchIndex Int\n  homeTeam   String\n  awayTeam   String\n  league     String\n  kickoff    DateTime\n\n  @@unique([sessionId, matchIndex])\n  @@index([sessionId])\n}\n\nmodel Participant {\n  id        String  @id @default(cuid())\n  sessionId String\n  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)\n  name      String\n  token     String  @unique @default(cuid())\n  isHost    Boolean @default(false)\n  submitted Boolean @default(false)\n\n  selections Selection[]\n\n  @@unique([sessionId, name])\n  @@index([sessionId])\n}\n\nmodel Selection {\n  id            String      @id @default(cuid())\n  participantId String\n  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)\n  matchIndex    Int\n  home          Boolean     @default(false)\n  draw          Boolean     @default(false)\n  away          Boolean     @default(false)\n\n  @@unique([participantId, matchIndex])\n  @@index([participantId])\n}\n\nenum SessionStatus {\n  BETTING\n  GENERATED\n}\n",
   "runtimeDataModel": {
     "models": {},
     "enums": {},
@@ -28,7 +28,7 @@ const config: runtime.GetPrismaClientConfig = {
   }
 }
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Session\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"code\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"betPerRow\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"SessionStatus\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"expiresAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"participants\",\"kind\":\"object\",\"type\":\"Participant\",\"relationName\":\"ParticipantToSession\"}],\"dbName\":null},\"Participant\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sessionId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"session\",\"kind\":\"object\",\"type\":\"Session\",\"relationName\":\"ParticipantToSession\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"token\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isHost\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"submitted\",\"kind\":\"scalar\",\"type\":\"Boolean\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"Session\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"code\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"betPerRow\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"SessionStatus\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"expiresAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"matches\",\"kind\":\"object\",\"type\":\"SessionMatch\",\"relationName\":\"SessionToSessionMatch\"},{\"name\":\"participants\",\"kind\":\"object\",\"type\":\"Participant\",\"relationName\":\"ParticipantToSession\"}],\"dbName\":null},\"SessionMatch\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sessionId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"session\",\"kind\":\"object\",\"type\":\"Session\",\"relationName\":\"SessionToSessionMatch\"},{\"name\":\"matchIndex\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"homeTeam\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"awayTeam\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"league\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"kickoff\",\"kind\":\"scalar\",\"type\":\"DateTime\"}],\"dbName\":null},\"Participant\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"sessionId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"session\",\"kind\":\"object\",\"type\":\"Session\",\"relationName\":\"ParticipantToSession\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"token\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"isHost\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"submitted\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"selections\",\"kind\":\"object\",\"type\":\"Selection\",\"relationName\":\"ParticipantToSelection\"}],\"dbName\":null},\"Selection\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"participantId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"participant\",\"kind\":\"object\",\"type\":\"Participant\",\"relationName\":\"ParticipantToSelection\"},{\"name\":\"matchIndex\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"home\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"draw\",\"kind\":\"scalar\",\"type\":\"Boolean\"},{\"name\":\"away\",\"kind\":\"scalar\",\"type\":\"Boolean\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 
 async function decodeBase64AsWasm(wasmBase64: string): Promise<WebAssembly.Module> {
   const { Buffer } = await import('node:buffer')
@@ -187,6 +187,16 @@ export interface PrismaClient<
   get session(): Prisma.SessionDelegate<ExtArgs, { omit: OmitOpts }>;
 
   /**
+   * `prisma.sessionMatch`: Exposes CRUD operations for the **SessionMatch** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SessionMatches
+    * const sessionMatches = await prisma.sessionMatch.findMany()
+    * ```
+    */
+  get sessionMatch(): Prisma.SessionMatchDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
    * `prisma.participant`: Exposes CRUD operations for the **Participant** model.
     * Example usage:
     * ```ts
@@ -195,6 +205,16 @@ export interface PrismaClient<
     * ```
     */
   get participant(): Prisma.ParticipantDelegate<ExtArgs, { omit: OmitOpts }>;
+
+  /**
+   * `prisma.selection`: Exposes CRUD operations for the **Selection** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Selections
+    * const selections = await prisma.selection.findMany()
+    * ```
+    */
+  get selection(): Prisma.SelectionDelegate<ExtArgs, { omit: OmitOpts }>;
 }
 
 export function getPrismaClientClass(): PrismaClientConstructor {

@@ -52,7 +52,9 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Session: 'Session',
-  Participant: 'Participant'
+  SessionMatch: 'SessionMatch',
+  Participant: 'Participant',
+  Selection: 'Selection'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -83,6 +85,19 @@ export const SessionScalarFieldEnum = {
 export type SessionScalarFieldEnum = (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum]
 
 
+export const SessionMatchScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  matchIndex: 'matchIndex',
+  homeTeam: 'homeTeam',
+  awayTeam: 'awayTeam',
+  league: 'league',
+  kickoff: 'kickoff'
+} as const
+
+export type SessionMatchScalarFieldEnum = (typeof SessionMatchScalarFieldEnum)[keyof typeof SessionMatchScalarFieldEnum]
+
+
 export const ParticipantScalarFieldEnum = {
   id: 'id',
   sessionId: 'sessionId',
@@ -93,6 +108,18 @@ export const ParticipantScalarFieldEnum = {
 } as const
 
 export type ParticipantScalarFieldEnum = (typeof ParticipantScalarFieldEnum)[keyof typeof ParticipantScalarFieldEnum]
+
+
+export const SelectionScalarFieldEnum = {
+  id: 'id',
+  participantId: 'participantId',
+  matchIndex: 'matchIndex',
+  home: 'home',
+  draw: 'draw',
+  away: 'away'
+} as const
+
+export type SelectionScalarFieldEnum = (typeof SelectionScalarFieldEnum)[keyof typeof SelectionScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -9,5 +9,7 @@
  * 🟢 You can import this file directly.
  */
 export type * from './models/Session'
+export type * from './models/SessionMatch'
 export type * from './models/Participant'
+export type * from './models/Selection'
 export type * from './commonInputTypes'

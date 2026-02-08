@@ -23,7 +23,17 @@ export * from './enums';
  */
 export type Session = Prisma.SessionModel
 /**
+ * Model SessionMatch
+ * 
+ */
+export type SessionMatch = Prisma.SessionMatchModel
+/**
  * Model Participant
  * 
  */
 export type Participant = Prisma.ParticipantModel
+/**
+ * Model Selection
+ * 
+ */
+export type Selection = Prisma.SelectionModel
