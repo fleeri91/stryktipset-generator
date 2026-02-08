@@ -224,6 +224,7 @@ export type SessionWhereInput = {
   status?: Prisma.EnumSessionStatusFilter<"Session"> | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFilter<"Session"> | Date | string
   expiresAt?: Prisma.DateTimeFilter<"Session"> | Date | string
+  matches?: Prisma.SessionMatchListRelationFilter
   participants?: Prisma.ParticipantListRelationFilter
 }
 
@@ -234,6 +235,7 @@ export type SessionOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   expiresAt?: Prisma.SortOrder
+  matches?: Prisma.SessionMatchOrderByRelationAggregateInput
   participants?: Prisma.ParticipantOrderByRelationAggregateInput
 }
 
@@ -247,6 +249,7 @@ export type SessionWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumSessionStatusFilter<"Session"> | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFilter<"Session"> | Date | string
   expiresAt?: Prisma.DateTimeFilter<"Session"> | Date | string
+  matches?: Prisma.SessionMatchListRelationFilter
   participants?: Prisma.ParticipantListRelationFilter
 }, "id" | "code">
 
@@ -283,6 +286,7 @@ export type SessionCreateInput = {
   status?: $Enums.SessionStatus
   createdAt?: Date | string
   expiresAt: Date | string
+  matches?: Prisma.SessionMatchCreateNestedManyWithoutSessionInput
   participants?: Prisma.ParticipantCreateNestedManyWithoutSessionInput
 }
 
@@ -293,6 +297,7 @@ export type SessionUncheckedCreateInput = {
   status?: $Enums.SessionStatus
   createdAt?: Date | string
   expiresAt: Date | string
+  matches?: Prisma.SessionMatchUncheckedCreateNestedManyWithoutSessionInput
   participants?: Prisma.ParticipantUncheckedCreateNestedManyWithoutSessionInput
 }
 
@@ -303,6 +308,7 @@ export type SessionUpdateInput = {
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  matches?: Prisma.SessionMatchUpdateManyWithoutSessionNestedInput
   participants?: Prisma.ParticipantUpdateManyWithoutSessionNestedInput
 }
 
@@ -313,6 +319,7 @@ export type SessionUncheckedUpdateInput = {
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  matches?: Prisma.SessionMatchUncheckedUpdateManyWithoutSessionNestedInput
   participants?: Prisma.ParticipantUncheckedUpdateManyWithoutSessionNestedInput
 }
 
@@ -403,6 +410,20 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
+export type SessionCreateNestedOneWithoutMatchesInput = {
+  create?: Prisma.XOR<Prisma.SessionCreateWithoutMatchesInput, Prisma.SessionUncheckedCreateWithoutMatchesInput>
+  connectOrCreate?: Prisma.SessionCreateOrConnectWithoutMatchesInput
+  connect?: Prisma.SessionWhereUniqueInput
+}
+
+export type SessionUpdateOneRequiredWithoutMatchesNestedInput = {
+  create?: Prisma.XOR<Prisma.SessionCreateWithoutMatchesInput, Prisma.SessionUncheckedCreateWithoutMatchesInput>
+  connectOrCreate?: Prisma.SessionCreateOrConnectWithoutMatchesInput
+  upsert?: Prisma.SessionUpsertWithoutMatchesInput
+  connect?: Prisma.SessionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.SessionUpdateToOneWithWhereWithoutMatchesInput, Prisma.SessionUpdateWithoutMatchesInput>, Prisma.SessionUncheckedUpdateWithoutMatchesInput>
+}
+
 export type SessionCreateNestedOneWithoutParticipantsInput = {
   create?: Prisma.XOR<Prisma.SessionCreateWithoutParticipantsInput, Prisma.SessionUncheckedCreateWithoutParticipantsInput>
   connectOrCreate?: Prisma.SessionCreateOrConnectWithoutParticipantsInput
@@ -417,6 +438,62 @@ export type SessionUpdateOneRequiredWithoutParticipantsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.SessionUpdateToOneWithWhereWithoutParticipantsInput, Prisma.SessionUpdateWithoutParticipantsInput>, Prisma.SessionUncheckedUpdateWithoutParticipantsInput>
 }
 
+export type SessionCreateWithoutMatchesInput = {
+  id?: string
+  code: string
+  betPerRow?: number
+  status?: $Enums.SessionStatus
+  createdAt?: Date | string
+  expiresAt: Date | string
+  participants?: Prisma.ParticipantCreateNestedManyWithoutSessionInput
+}
+
+export type SessionUncheckedCreateWithoutMatchesInput = {
+  id?: string
+  code: string
+  betPerRow?: number
+  status?: $Enums.SessionStatus
+  createdAt?: Date | string
+  expiresAt: Date | string
+  participants?: Prisma.ParticipantUncheckedCreateNestedManyWithoutSessionInput
+}
+
+export type SessionCreateOrConnectWithoutMatchesInput = {
+  where: Prisma.SessionWhereUniqueInput
+  create: Prisma.XOR<Prisma.SessionCreateWithoutMatchesInput, Prisma.SessionUncheckedCreateWithoutMatchesInput>
+}
+
+export type SessionUpsertWithoutMatchesInput = {
+  update: Prisma.XOR<Prisma.SessionUpdateWithoutMatchesInput, Prisma.SessionUncheckedUpdateWithoutMatchesInput>
+  create: Prisma.XOR<Prisma.SessionCreateWithoutMatchesInput, Prisma.SessionUncheckedCreateWithoutMatchesInput>
+  where?: Prisma.SessionWhereInput
+}
+
+export type SessionUpdateToOneWithWhereWithoutMatchesInput = {
+  where?: Prisma.SessionWhereInput
+  data: Prisma.XOR<Prisma.SessionUpdateWithoutMatchesInput, Prisma.SessionUncheckedUpdateWithoutMatchesInput>
+}
+
+export type SessionUpdateWithoutMatchesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  betPerRow?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  participants?: Prisma.ParticipantUpdateManyWithoutSessionNestedInput
+}
+
+export type SessionUncheckedUpdateWithoutMatchesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  betPerRow?: Prisma.IntFieldUpdateOperationsInput | number
+  status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  participants?: Prisma.ParticipantUncheckedUpdateManyWithoutSessionNestedInput
+}
+
 export type SessionCreateWithoutParticipantsInput = {
   id?: string
   code: string
@@ -424,6 +501,7 @@ export type SessionCreateWithoutParticipantsInput = {
   status?: $Enums.SessionStatus
   createdAt?: Date | string
   expiresAt: Date | string
+  matches?: Prisma.SessionMatchCreateNestedManyWithoutSessionInput
 }
 
 export type SessionUncheckedCreateWithoutParticipantsInput = {
@@ -433,6 +511,7 @@ export type SessionUncheckedCreateWithoutParticipantsInput = {
   status?: $Enums.SessionStatus
   createdAt?: Date | string
   expiresAt: Date | string
+  matches?: Prisma.SessionMatchUncheckedCreateNestedManyWithoutSessionInput
 }
 
 export type SessionCreateOrConnectWithoutParticipantsInput = {
@@ -458,6 +537,7 @@ export type SessionUpdateWithoutParticipantsInput = {
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  matches?: Prisma.SessionMatchUpdateManyWithoutSessionNestedInput
 }
 
 export type SessionUncheckedUpdateWithoutParticipantsInput = {
@@ -467,6 +547,7 @@ export type SessionUncheckedUpdateWithoutParticipantsInput = {
   status?: Prisma.EnumSessionStatusFieldUpdateOperationsInput | $Enums.SessionStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  matches?: Prisma.SessionMatchUncheckedUpdateManyWithoutSessionNestedInput
 }
 
 
@@ -475,10 +556,12 @@ export type SessionUncheckedUpdateWithoutParticipantsInput = {
  */
 
 export type SessionCountOutputType = {
+  matches: number
   participants: number
 }
 
 export type SessionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  matches?: boolean | SessionCountOutputTypeCountMatchesArgs
   participants?: boolean | SessionCountOutputTypeCountParticipantsArgs
 }
 
@@ -490,6 +573,13 @@ export type SessionCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exte
    * Select specific fields to fetch from the SessionCountOutputType
    */
   select?: Prisma.SessionCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * SessionCountOutputType without action
+ */
+export type SessionCountOutputTypeCountMatchesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SessionMatchWhereInput
 }
 
 /**
@@ -507,6 +597,7 @@ export type SessionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   status?: boolean
   createdAt?: boolean
   expiresAt?: boolean
+  matches?: boolean | Prisma.Session$matchesArgs<ExtArgs>
   participants?: boolean | Prisma.Session$participantsArgs<ExtArgs>
   _count?: boolean | Prisma.SessionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["session"]>
@@ -540,6 +631,7 @@ export type SessionSelectScalar = {
 
 export type SessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "betPerRow" | "status" | "createdAt" | "expiresAt", ExtArgs["result"]["session"]>
 export type SessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  matches?: boolean | Prisma.Session$matchesArgs<ExtArgs>
   participants?: boolean | Prisma.Session$participantsArgs<ExtArgs>
   _count?: boolean | Prisma.SessionCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -549,6 +641,7 @@ export type SessionIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
 export type $SessionPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Session"
   objects: {
+    matches: Prisma.$SessionMatchPayload<ExtArgs>[]
     participants: Prisma.$ParticipantPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -952,6 +1045,7 @@ readonly fields: SessionFieldRefs;
  */
 export interface Prisma__SessionClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  matches<T extends Prisma.Session$matchesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Session$matchesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SessionMatchPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   participants<T extends Prisma.Session$participantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Session$participantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ParticipantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1373,6 +1467,30 @@ export type SessionDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inter
    * Limit how many Sessions to delete.
    */
   limit?: number
+}
+
+/**
+ * Session.matches
+ */
+export type Session$matchesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SessionMatch
+   */
+  select?: Prisma.SessionMatchSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SessionMatch
+   */
+  omit?: Prisma.SessionMatchOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SessionMatchInclude<ExtArgs> | null
+  where?: Prisma.SessionMatchWhereInput
+  orderBy?: Prisma.SessionMatchOrderByWithRelationInput | Prisma.SessionMatchOrderByWithRelationInput[]
+  cursor?: Prisma.SessionMatchWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SessionMatchScalarFieldEnum | Prisma.SessionMatchScalarFieldEnum[]
 }
 
 /**

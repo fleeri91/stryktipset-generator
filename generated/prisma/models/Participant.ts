@@ -191,6 +191,7 @@ export type ParticipantWhereInput = {
   isHost?: Prisma.BoolFilter<"Participant"> | boolean
   submitted?: Prisma.BoolFilter<"Participant"> | boolean
   session?: Prisma.XOR<Prisma.SessionScalarRelationFilter, Prisma.SessionWhereInput>
+  selections?: Prisma.SelectionListRelationFilter
 }
 
 export type ParticipantOrderByWithRelationInput = {
@@ -201,6 +202,7 @@ export type ParticipantOrderByWithRelationInput = {
   isHost?: Prisma.SortOrder
   submitted?: Prisma.SortOrder
   session?: Prisma.SessionOrderByWithRelationInput
+  selections?: Prisma.SelectionOrderByRelationAggregateInput
 }
 
 export type ParticipantWhereUniqueInput = Prisma.AtLeast<{
@@ -215,6 +217,7 @@ export type ParticipantWhereUniqueInput = Prisma.AtLeast<{
   isHost?: Prisma.BoolFilter<"Participant"> | boolean
   submitted?: Prisma.BoolFilter<"Participant"> | boolean
   session?: Prisma.XOR<Prisma.SessionScalarRelationFilter, Prisma.SessionWhereInput>
+  selections?: Prisma.SelectionListRelationFilter
 }, "id" | "token" | "sessionId_name">
 
 export type ParticipantOrderByWithAggregationInput = {
@@ -248,6 +251,7 @@ export type ParticipantCreateInput = {
   isHost?: boolean
   submitted?: boolean
   session: Prisma.SessionCreateNestedOneWithoutParticipantsInput
+  selections?: Prisma.SelectionCreateNestedManyWithoutParticipantInput
 }
 
 export type ParticipantUncheckedCreateInput = {
@@ -257,6 +261,7 @@ export type ParticipantUncheckedCreateInput = {
   token?: string
   isHost?: boolean
   submitted?: boolean
+  selections?: Prisma.SelectionUncheckedCreateNestedManyWithoutParticipantInput
 }
 
 export type ParticipantUpdateInput = {
@@ -266,6 +271,7 @@ export type ParticipantUpdateInput = {
   isHost?: Prisma.BoolFieldUpdateOperationsInput | boolean
   submitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   session?: Prisma.SessionUpdateOneRequiredWithoutParticipantsNestedInput
+  selections?: Prisma.SelectionUpdateManyWithoutParticipantNestedInput
 }
 
 export type ParticipantUncheckedUpdateInput = {
@@ -275,6 +281,7 @@ export type ParticipantUncheckedUpdateInput = {
   token?: Prisma.StringFieldUpdateOperationsInput | string
   isHost?: Prisma.BoolFieldUpdateOperationsInput | boolean
   submitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  selections?: Prisma.SelectionUncheckedUpdateManyWithoutParticipantNestedInput
 }
 
 export type ParticipantCreateManyInput = {
@@ -345,6 +352,11 @@ export type ParticipantMinOrderByAggregateInput = {
   submitted?: Prisma.SortOrder
 }
 
+export type ParticipantScalarRelationFilter = {
+  is?: Prisma.ParticipantWhereInput
+  isNot?: Prisma.ParticipantWhereInput
+}
+
 export type ParticipantCreateNestedManyWithoutSessionInput = {
   create?: Prisma.XOR<Prisma.ParticipantCreateWithoutSessionInput, Prisma.ParticipantUncheckedCreateWithoutSessionInput> | Prisma.ParticipantCreateWithoutSessionInput[] | Prisma.ParticipantUncheckedCreateWithoutSessionInput[]
   connectOrCreate?: Prisma.ParticipantCreateOrConnectWithoutSessionInput | Prisma.ParticipantCreateOrConnectWithoutSessionInput[]
@@ -391,12 +403,27 @@ export type BoolFieldUpdateOperationsInput = {
   set?: boolean
 }
 
+export type ParticipantCreateNestedOneWithoutSelectionsInput = {
+  create?: Prisma.XOR<Prisma.ParticipantCreateWithoutSelectionsInput, Prisma.ParticipantUncheckedCreateWithoutSelectionsInput>
+  connectOrCreate?: Prisma.ParticipantCreateOrConnectWithoutSelectionsInput
+  connect?: Prisma.ParticipantWhereUniqueInput
+}
+
+export type ParticipantUpdateOneRequiredWithoutSelectionsNestedInput = {
+  create?: Prisma.XOR<Prisma.ParticipantCreateWithoutSelectionsInput, Prisma.ParticipantUncheckedCreateWithoutSelectionsInput>
+  connectOrCreate?: Prisma.ParticipantCreateOrConnectWithoutSelectionsInput
+  upsert?: Prisma.ParticipantUpsertWithoutSelectionsInput
+  connect?: Prisma.ParticipantWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ParticipantUpdateToOneWithWhereWithoutSelectionsInput, Prisma.ParticipantUpdateWithoutSelectionsInput>, Prisma.ParticipantUncheckedUpdateWithoutSelectionsInput>
+}
+
 export type ParticipantCreateWithoutSessionInput = {
   id?: string
   name: string
   token?: string
   isHost?: boolean
   submitted?: boolean
+  selections?: Prisma.SelectionCreateNestedManyWithoutParticipantInput
 }
 
 export type ParticipantUncheckedCreateWithoutSessionInput = {
@@ -405,6 +432,7 @@ export type ParticipantUncheckedCreateWithoutSessionInput = {
   token?: string
   isHost?: boolean
   submitted?: boolean
+  selections?: Prisma.SelectionUncheckedCreateNestedManyWithoutParticipantInput
 }
 
 export type ParticipantCreateOrConnectWithoutSessionInput = {
@@ -445,6 +473,58 @@ export type ParticipantScalarWhereInput = {
   submitted?: Prisma.BoolFilter<"Participant"> | boolean
 }
 
+export type ParticipantCreateWithoutSelectionsInput = {
+  id?: string
+  name: string
+  token?: string
+  isHost?: boolean
+  submitted?: boolean
+  session: Prisma.SessionCreateNestedOneWithoutParticipantsInput
+}
+
+export type ParticipantUncheckedCreateWithoutSelectionsInput = {
+  id?: string
+  sessionId: string
+  name: string
+  token?: string
+  isHost?: boolean
+  submitted?: boolean
+}
+
+export type ParticipantCreateOrConnectWithoutSelectionsInput = {
+  where: Prisma.ParticipantWhereUniqueInput
+  create: Prisma.XOR<Prisma.ParticipantCreateWithoutSelectionsInput, Prisma.ParticipantUncheckedCreateWithoutSelectionsInput>
+}
+
+export type ParticipantUpsertWithoutSelectionsInput = {
+  update: Prisma.XOR<Prisma.ParticipantUpdateWithoutSelectionsInput, Prisma.ParticipantUncheckedUpdateWithoutSelectionsInput>
+  create: Prisma.XOR<Prisma.ParticipantCreateWithoutSelectionsInput, Prisma.ParticipantUncheckedCreateWithoutSelectionsInput>
+  where?: Prisma.ParticipantWhereInput
+}
+
+export type ParticipantUpdateToOneWithWhereWithoutSelectionsInput = {
+  where?: Prisma.ParticipantWhereInput
+  data: Prisma.XOR<Prisma.ParticipantUpdateWithoutSelectionsInput, Prisma.ParticipantUncheckedUpdateWithoutSelectionsInput>
+}
+
+export type ParticipantUpdateWithoutSelectionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  token?: Prisma.StringFieldUpdateOperationsInput | string
+  isHost?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  submitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  session?: Prisma.SessionUpdateOneRequiredWithoutParticipantsNestedInput
+}
+
+export type ParticipantUncheckedUpdateWithoutSelectionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  sessionId?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  token?: Prisma.StringFieldUpdateOperationsInput | string
+  isHost?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  submitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+}
+
 export type ParticipantCreateManySessionInput = {
   id?: string
   name: string
@@ -459,6 +539,7 @@ export type ParticipantUpdateWithoutSessionInput = {
   token?: Prisma.StringFieldUpdateOperationsInput | string
   isHost?: Prisma.BoolFieldUpdateOperationsInput | boolean
   submitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  selections?: Prisma.SelectionUpdateManyWithoutParticipantNestedInput
 }
 
 export type ParticipantUncheckedUpdateWithoutSessionInput = {
@@ -467,6 +548,7 @@ export type ParticipantUncheckedUpdateWithoutSessionInput = {
   token?: Prisma.StringFieldUpdateOperationsInput | string
   isHost?: Prisma.BoolFieldUpdateOperationsInput | boolean
   submitted?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  selections?: Prisma.SelectionUncheckedUpdateManyWithoutParticipantNestedInput
 }
 
 export type ParticipantUncheckedUpdateManyWithoutSessionInput = {
@@ -478,6 +560,35 @@ export type ParticipantUncheckedUpdateManyWithoutSessionInput = {
 }
 
 
+/**
+ * Count Type ParticipantCountOutputType
+ */
+
+export type ParticipantCountOutputType = {
+  selections: number
+}
+
+export type ParticipantCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  selections?: boolean | ParticipantCountOutputTypeCountSelectionsArgs
+}
+
+/**
+ * ParticipantCountOutputType without action
+ */
+export type ParticipantCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ParticipantCountOutputType
+   */
+  select?: Prisma.ParticipantCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ParticipantCountOutputType without action
+ */
+export type ParticipantCountOutputTypeCountSelectionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.SelectionWhereInput
+}
+
 
 export type ParticipantSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -487,6 +598,8 @@ export type ParticipantSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   isHost?: boolean
   submitted?: boolean
   session?: boolean | Prisma.SessionDefaultArgs<ExtArgs>
+  selections?: boolean | Prisma.Participant$selectionsArgs<ExtArgs>
+  _count?: boolean | Prisma.ParticipantCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["participant"]>
 
 export type ParticipantSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -521,6 +634,8 @@ export type ParticipantSelectScalar = {
 export type ParticipantOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "sessionId" | "name" | "token" | "isHost" | "submitted", ExtArgs["result"]["participant"]>
 export type ParticipantInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   session?: boolean | Prisma.SessionDefaultArgs<ExtArgs>
+  selections?: boolean | Prisma.Participant$selectionsArgs<ExtArgs>
+  _count?: boolean | Prisma.ParticipantCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ParticipantIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   session?: boolean | Prisma.SessionDefaultArgs<ExtArgs>
@@ -533,6 +648,7 @@ export type $ParticipantPayload<ExtArgs extends runtime.Types.Extensions.Interna
   name: "Participant"
   objects: {
     session: Prisma.$SessionPayload<ExtArgs>
+    selections: Prisma.$SelectionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -936,6 +1052,7 @@ readonly fields: ParticipantFieldRefs;
 export interface Prisma__ParticipantClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   session<T extends Prisma.SessionDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.SessionDefaultArgs<ExtArgs>>): Prisma.Prisma__SessionClient<runtime.Types.Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  selections<T extends Prisma.Participant$selectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Participant$selectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SelectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1364,6 +1481,30 @@ export type ParticipantDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.I
    * Limit how many Participants to delete.
    */
   limit?: number
+}
+
+/**
+ * Participant.selections
+ */
+export type Participant$selectionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Selection
+   */
+  select?: Prisma.SelectionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Selection
+   */
+  omit?: Prisma.SelectionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SelectionInclude<ExtArgs> | null
+  where?: Prisma.SelectionWhereInput
+  orderBy?: Prisma.SelectionOrderByWithRelationInput | Prisma.SelectionOrderByWithRelationInput[]
+  cursor?: Prisma.SelectionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.SelectionScalarFieldEnum | Prisma.SelectionScalarFieldEnum[]
 }
 
 /**
