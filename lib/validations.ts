@@ -2,7 +2,9 @@ import { z } from 'zod'
 
 export const createSessionSchema = z.object({
   hostName: z.string().min(1, 'Namn krävs').max(20, 'Max 20 tecken').trim(),
-  betPerRow: z.coerce.number().int().min(1).max(100),
+  eventType: z.string().min(1),
+  drawNumber: z.number().int(),
+  closeTime: z.string(),
   matches: z
     .array(
       z.object({

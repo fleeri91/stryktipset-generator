@@ -20,13 +20,6 @@ export function calculateRows(
   }, 1)
 }
 
-export function calculateCost(
-  selections: { home: boolean; draw: boolean; away: boolean }[],
-  betPerRow: number
-): number {
-  return calculateRows(selections) * betPerRow
-}
-
 /**
  * Merge all participants' selections with OR logic.
  * If anyone picked "1" for match 3, the combined bong has "1" for match 3.
