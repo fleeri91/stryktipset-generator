@@ -7,18 +7,31 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-  posts Post[]
+model Session {
+  id        String        @id @default(cuid())
+  code      String        @unique
+  betPerRow Int           @default(1)
+  status    SessionStatus @default(BETTING)
+  createdAt DateTime      @default(now())
+  expiresAt DateTime
+
+  participants Participant[]
 }
 
-model Post {
-  id        Int     @id @default(autoincrement())
-  title     String
-  content   String?
-  published Boolean @default(false)
-  author    User    @relation(fields: [authorId], references: [id])
-  authorId  Int
+model Participant {
+  id        String  @id @default(cuid())
+  sessionId String
+  session   Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  name      String
+  token     String  @unique @default(cuid())
+  isHost    Boolean @default(false)
+  submitted Boolean @default(false)
+
+  @@unique([sessionId, name])
+  @@index([sessionId])
+}
+
+enum SessionStatus {
+  BETTING
+  GENERATED
 }
