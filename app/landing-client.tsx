@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -16,14 +17,51 @@ import {
 type View = 'idle' | 'create' | 'join'
 
 export function LandingClient() {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+
   const [view, setView] = useState<View>('idle')
   const [name, setName] = useState('')
   const [joinCode, setJoinCode] = useState('')
+  const [error, setError] = useState('')
 
   function reset() {
     setView('idle')
     setName('')
     setJoinCode('')
+    setError('')
+  }
+
+  function handleCreate() {
+    if (!name.trim()) return
+    sessionStorage.setItem('hostName', name.trim())
+    router.push('/session/create')
+  }
+
+  function handleJoin() {
+    if (!name.trim() || joinCode.length !== 6) return
+
+    setError('')
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/sessions/${joinCode}/join`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name.trim() }),
+        })
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          setError(data.error || 'Något gick fel. Försök igen.')
+          return
+        }
+
+        const data = await res.json()
+        router.push(`/session/${data.sessionCode}`)
+      } catch {
+        setError('Kunde inte ansluta. Försök igen.')
+      }
+    })
   }
 
   return (
@@ -86,6 +124,7 @@ export function LandingClient() {
                   placeholder="T.ex. Erik"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
                   maxLength={20}
                 />
               </div>
@@ -94,7 +133,11 @@ export function LandingClient() {
                   <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
                   Tillbaka
                 </Button>
-                <Button className="flex-2" disabled={!name.trim()}>
+                <Button
+                  className="flex-2"
+                  disabled={!name.trim()}
+                  onClick={handleCreate}
+                >
                   Fortsätt
                 </Button>
               </div>
@@ -121,7 +164,10 @@ export function LandingClient() {
                   autoFocus
                   placeholder="T.ex. Anna"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => {
+                    setName(e.target.value)
+                    setError('')
+                  }}
                   maxLength={20}
                 />
               </div>
@@ -131,18 +177,23 @@ export function LandingClient() {
                   id="join-code"
                   placeholder="T.ex. ABC123"
                   value={joinCode}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setJoinCode(
                       e.target.value
                         .toUpperCase()
                         .replace(/[^A-Z0-9]/g, '')
                         .slice(0, 6)
                     )
-                  }
+                    setError('')
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleJoin()}
                   maxLength={6}
                   className="text-center text-lg tracking-[8px]"
                 />
               </div>
+
+              {error && <p className="text-destructive text-sm">{error}</p>}
+
               <div className="flex gap-2 pt-2">
                 <Button variant="ghost" className="flex-1" onClick={reset}>
                   <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
@@ -150,9 +201,13 @@ export function LandingClient() {
                 </Button>
                 <Button
                   className="flex-2"
-                  disabled={!name.trim() || joinCode.length !== 6}
+                  disabled={!name.trim() || joinCode.length !== 6 || isPending}
+                  onClick={handleJoin}
                 >
-                  Gå Med
+                  {isPending && (
+                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                  )}
+                  {isPending ? 'Ansluter...' : 'Gå Med'}
                 </Button>
               </div>
             </CardContent>
