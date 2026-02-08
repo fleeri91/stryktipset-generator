@@ -37,7 +37,7 @@ export async function POST(
       )
     }
 
-    if (session.expiresAt < new Date()) {
+    if (session.closesAt < new Date()) {
       return NextResponse.json(
         { error: 'Sessionen har gått ut' },
         { status: 410 }

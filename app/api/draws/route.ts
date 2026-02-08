@@ -1,20 +1,14 @@
 import { NextResponse } from 'next/server'
-import { fetchDraw } from '@/lib/api'
-import { EventType } from '@/types/SvenskaSpel'
+import { fetchAllDraws } from '@/lib/api'
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(request.url)
-    const type =
-      (searchParams.get('type') as EventType) ?? EventType.Europatipset
-
-    const draw = await fetchDraw(type)
-
-    return NextResponse.json(draw)
+    const draws = await fetchAllDraws()
+    return NextResponse.json(draws)
   } catch (error) {
-    console.error('Failed to fetch draw:', error)
+    console.error('Failed to fetch draws:', error)
     return NextResponse.json(
-      { error: 'Kunde inte hämta omgången' },
+      { error: 'Kunde inte hämta omgångar' },
       { status: 500 }
     )
   }

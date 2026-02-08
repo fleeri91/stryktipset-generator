@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const { hostName, betPerRow, matches } = result.data
+    const { hostName, eventType, drawNumber, closeTime, matches } = result.data
 
     let code = generateSessionCode()
     let attempts = 0
@@ -30,8 +30,9 @@ export async function POST(request: Request) {
     const session = await prisma.session.create({
       data: {
         code,
-        betPerRow,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        eventType,
+        drawNumber,
+        closesAt: new Date(closeTime),
         matches: {
           create: matches.map((match, index) => ({
             matchIndex: index + 1,
