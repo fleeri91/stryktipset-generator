@@ -42,7 +42,6 @@ export default async function BetPage({ params }: Props) {
     kickoff: m.kickoff.toISOString(),
   }))
 
-  // Build existing selections map (if editing)
   const existing = participant.selections.reduce(
     (acc, s) => {
       acc[s.matchIndex] = { home: s.home, draw: s.draw, away: s.away }
@@ -54,7 +53,6 @@ export default async function BetPage({ params }: Props) {
   return (
     <BetBuilderClient
       sessionCode={code}
-      betPerRow={participant.session.betPerRow}
       matches={matches}
       existingSelections={existing}
       participantName={participant.name}

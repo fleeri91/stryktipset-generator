@@ -22,7 +22,6 @@ interface Participant {
 
 interface LobbyClientProps {
   sessionCode: string
-  betPerRow: number
   status: string
   participants: Participant[]
   currentParticipantId: string
@@ -30,7 +29,6 @@ interface LobbyClientProps {
 
 export function LobbyClient({
   sessionCode,
-  betPerRow,
   status,
   participants,
   currentParticipantId,
@@ -121,16 +119,6 @@ export function LobbyClient({
             </div>
           </CardContent>
         </Card>
-
-        {/* Session info */}
-        <div className="text-muted-foreground flex gap-4 text-xs">
-          <span>
-            Insats:{' '}
-            <span className="text-foreground font-medium">
-              {betPerRow} kr/rad
-            </span>
-          </span>
-        </div>
 
         {/* Participants */}
         <Card>

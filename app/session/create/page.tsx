@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Loader2, Check, RefreshCw } from 'lucide-react'
+import { ArrowLeft, Loader2, RefreshCw, Calendar, Trophy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import {
   Card,
   CardContent,
@@ -12,9 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { formatKickoff } from '@/lib/matches'
-
-const BET_AMOUNTS = [1, 2, 5, 10] as const
 
 interface MatchFromApi {
   eventNumber: number
@@ -22,7 +18,6 @@ interface MatchFromApi {
   awayTeam: string
   league: string
   kickoff: string
-  odds: { home: string; draw: string; away: string }
 }
 
 interface DrawInfo {
@@ -30,6 +25,8 @@ interface DrawInfo {
   drawComment: string
   closeTime: string
   jackpot: string | null
+  eventType: string
+  productName: string
   matches: MatchFromApi[]
 }
 
@@ -38,13 +35,10 @@ export default function CreateSessionPage() {
   const [isPending, startTransition] = useTransition()
 
   const [hostName, setHostName] = useState<string | null>(null)
-  const [betPerRow, setBetPerRow] = useState<number>(1)
-  const [draw, setDraw] = useState<DrawInfo | null>(null)
+  const [draws, setDraws] = useState<DrawInfo[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set())
   const [error, setError] = useState('')
 
-  // Read sessionStorage after mount to avoid hydration mismatch
   useEffect(() => {
     const stored = sessionStorage.getItem('hostName')
     if (!stored) {
@@ -52,56 +46,48 @@ export default function CreateSessionPage() {
       return
     }
     setHostName(stored)
-    fetchMatches()
+    fetchDraws()
   }, [router])
 
-  async function fetchMatches() {
+  async function fetchDraws() {
     setLoading(true)
     setError('')
     try {
       const res = await fetch('/api/draws')
       if (!res.ok) throw new Error()
-      const data: DrawInfo = await res.json()
-      setDraw(data)
-      setSelectedIds(new Set(data.matches.map((m) => m.eventNumber)))
+      const data: DrawInfo[] = await res.json()
+      setDraws(data)
     } catch {
-      setError('Kunde inte hämta matcher. Försök igen.')
+      setError('Kunde inte hämta omgångar. Försök igen.')
     } finally {
       setLoading(false)
     }
   }
 
-  function toggleMatch(id: number) {
-    setSelectedIds((prev) => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
-  }
-
-  function handleCreate() {
-    if (!draw || !hostName || selectedIds.size === 0) return
-
-    const selectedMatches = draw.matches
-      .filter((m) => selectedIds.has(m.eventNumber))
-      .map(({ homeTeam, awayTeam, league, kickoff }) => ({
-        homeTeam,
-        awayTeam,
-        league,
-        kickoff,
-      }))
+  function handleSelectDraw(draw: DrawInfo) {
+    if (!hostName) return
 
     setError('')
     startTransition(async () => {
       try {
+        const matches = draw.matches.map(
+          ({ homeTeam, awayTeam, league, kickoff }) => ({
+            homeTeam,
+            awayTeam,
+            league,
+            kickoff,
+          })
+        )
+
         const res = await fetch('/api/sessions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             hostName,
-            betPerRow,
-            matches: selectedMatches,
+            eventType: draw.eventType,
+            drawNumber: draw.drawNumber,
+            closeTime: draw.closeTime,
+            matches,
           }),
         })
 
@@ -120,7 +106,16 @@ export default function CreateSessionPage() {
     })
   }
 
-  // Show nothing until we've checked sessionStorage on the client
+  function formatCloseTime(iso: string) {
+    return new Date(iso).toLocaleString('sv-SE', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
   if (hostName === null) return null
 
   return (
@@ -137,148 +132,86 @@ export default function CreateSessionPage() {
           Tillbaka
         </Button>
 
-        {/* Bet amount */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-display text-lg tracking-wider uppercase">
-              Ny Session
-            </CardTitle>
-            <CardDescription>
-              Du skapar sessionen som{' '}
-              <span className="text-foreground font-medium">{hostName}</span>.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Label>Insats per rad (kr)</Label>
-            <div className="grid grid-cols-4 gap-2">
-              {BET_AMOUNTS.map((amount) => (
-                <Button
-                  key={amount}
-                  variant={betPerRow === amount ? 'default' : 'outline'}
-                  className="text-base"
-                  onClick={() => setBetPerRow(amount)}
-                >
-                  {amount}
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div>
+          <h1 className="font-display text-foreground text-2xl font-bold tracking-wider uppercase">
+            Välj Omgång
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Hej <span className="text-foreground font-medium">{hostName}</span>,
+            välj vilken omgång du vill tippa.
+          </p>
+        </div>
 
-        {/* Match selection */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-sm">
-                  {draw ? `Omgång ${draw.drawNumber}` : 'Matcher'}
-                </CardTitle>
-                {draw?.jackpot && (
-                  <CardDescription className="mt-0.5">
-                    Jackpot: {draw.jackpot} kr
-                  </CardDescription>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                {draw && (
-                  <span className="text-muted-foreground text-xs">
-                    {selectedIds.size} valda
-                  </span>
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={fetchMatches}
-                  disabled={loading}
-                >
-                  <RefreshCw
-                    className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`}
-                  />
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="text-muted-foreground h-5 w-5 animate-spin" />
-              </div>
-            ) : draw ? (
-              <div className="space-y-1.5">
-                {draw.matches.map((match) => {
-                  const selected = selectedIds.has(match.eventNumber)
-                  return (
-                    <button
-                      key={match.eventNumber}
-                      onClick={() => toggleMatch(match.eventNumber)}
-                      className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors ${
-                        selected
-                          ? 'border-primary/15 bg-primary/5'
-                          : 'bg-muted/30 hover:bg-muted/50'
-                      }`}
-                    >
-                      <div
-                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
-                          selected
-                            ? 'border-primary bg-primary'
-                            : 'border-muted-foreground/30'
-                        }`}
-                      >
-                        {selected && (
-                          <Check
-                            className="text-primary-foreground h-3 w-3"
-                            strokeWidth={3}
-                          />
-                        )}
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+          </div>
+        ) : draws.length > 0 ? (
+          <div className="space-y-3">
+            {draws.map((draw) => (
+              <Card
+                key={`${draw.eventType}-${draw.drawNumber}`}
+                className={`hover:border-primary/20 cursor-pointer transition-colors ${
+                  isPending ? 'pointer-events-none opacity-50' : ''
+                }`}
+                onClick={() => handleSelectDraw(draw)}
+              >
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="font-display text-base tracking-wider uppercase">
+                        {draw.productName}
+                      </CardTitle>
+                      <CardDescription className="mt-0.5">
+                        Omgång {draw.drawNumber}
+                        {draw.drawComment && ` · ${draw.drawComment}`}
+                      </CardDescription>
+                    </div>
+                    {draw.jackpot && (
+                      <div className="bg-primary/10 text-primary flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium">
+                        <Trophy className="h-3 w-3" />
+                        {draw.jackpot} kr
                       </div>
-                      <span className="text-muted-foreground w-5 shrink-0 text-center text-xs">
-                        {match.eventNumber}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p
-                          className={`truncate text-sm ${
-                            selected
-                              ? 'text-foreground'
-                              : 'text-muted-foreground'
-                          }`}
-                        >
-                          {match.homeTeam} — {match.awayTeam}
-                        </p>
-                        <p className="text-muted-foreground text-[11px]">
-                          {match.league}
-                        </p>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <span className="text-muted-foreground text-[11px]">
-                          {formatKickoff(match.kickoff)}
-                        </span>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            ) : (
-              <p className="text-muted-foreground py-8 text-center text-sm">
-                Inga matcher tillgängliga just nu.
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-muted-foreground flex items-center justify-between text-xs">
+                    <span>{draw.matches.length} matcher</span>
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Stänger {formatCloseTime(draw.closeTime)}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <p className="text-muted-foreground text-sm">
+                Inga omgångar tillgängliga just nu.
               </p>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {error && <p className="text-destructive text-sm">{error}</p>}
 
-        <Button
-          size="lg"
-          className="w-full"
-          disabled={selectedIds.size === 0 || isPending || loading}
-          onClick={handleCreate}
-        >
-          {isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
-          {isPending
-            ? 'Skapar...'
-            : `Skapa Session (${selectedIds.size} matcher)`}
-        </Button>
+        <div className="flex justify-center">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={fetchDraws}
+            disabled={loading}
+          >
+            <RefreshCw
+              className={`mr-1.5 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`}
+            />
+            Uppdatera
+          </Button>
+        </div>
       </div>
     </div>
   )

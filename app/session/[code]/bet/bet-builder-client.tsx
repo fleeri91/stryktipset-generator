@@ -4,8 +4,10 @@ import { useState, useTransition, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { calculateRows, calculateCost } from '@/lib/bong'
+import { Card, CardContent } from '@/components/ui/card'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Badge } from '@/components/ui/badge'
+import { calculateRows } from '@/lib/bong'
 import { formatKickoff } from '@/lib/matches'
 
 interface MatchData {
@@ -24,7 +26,6 @@ interface Picks {
 
 interface BetBuilderClientProps {
   sessionCode: string
-  betPerRow: number
   matches: MatchData[]
   existingSelections: Record<number, Picks>
   participantName: string
@@ -39,7 +40,6 @@ const CHOICES = [
 
 export function BetBuilderClient({
   sessionCode,
-  betPerRow,
   matches,
   existingSelections,
   participantName,
@@ -61,16 +61,6 @@ export function BetBuilderClient({
     return initial
   })
 
-  function togglePick(matchIndex: number, key: keyof Picks) {
-    setSelections((prev) => ({
-      ...prev,
-      [matchIndex]: {
-        ...prev[matchIndex],
-        [key]: !prev[matchIndex][key],
-      },
-    }))
-  }
-
   const selectionsList = useMemo(
     () => matches.map((m) => selections[m.matchIndex]),
     [matches, selections]
@@ -78,7 +68,6 @@ export function BetBuilderClient({
 
   const allHavePick = selectionsList.every((s) => s.home || s.draw || s.away)
   const rows = calculateRows(selectionsList)
-  const cost = calculateCost(selectionsList, betPerRow)
 
   function handleSubmit() {
     if (!allHavePick) return
@@ -115,7 +104,7 @@ export function BetBuilderClient({
 
   return (
     <div className="flex min-h-dvh flex-col items-center px-6 py-10">
-      <div className="w-full max-w-sm space-y-6">
+      <div className="w-full max-w-xl space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Button
@@ -132,16 +121,6 @@ export function BetBuilderClient({
 
         {/* Match list */}
         <Card>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm">Matcher</CardTitle>
-              <div className="text-muted-foreground flex gap-4 text-[10px] tracking-widest uppercase">
-                <span className="w-10 text-center">1</span>
-                <span className="w-10 text-center">X</span>
-                <span className="w-10 text-center">2</span>
-              </div>
-            </div>
-          </CardHeader>
           <CardContent className="space-y-1">
             {matches.map((match) => {
               const picks = selections[match.matchIndex]
@@ -151,9 +130,9 @@ export function BetBuilderClient({
                   key={match.matchIndex}
                   className="border-border/50 flex items-center gap-3 border-b py-2.5 last:border-0"
                 >
-                  <span className="text-muted-foreground w-5 shrink-0 text-center text-xs">
+                  <Badge className="h-8 w-8 shrink-0 text-center text-sm font-bold">
                     {match.matchIndex}
-                  </span>
+                  </Badge>
                   <div className="min-w-0 flex-1">
                     <p
                       className={`truncate text-sm ${
@@ -166,21 +145,32 @@ export function BetBuilderClient({
                       {match.league} · {formatKickoff(match.kickoff)}
                     </p>
                   </div>
-                  <div className="flex gap-1.5">
+                  <ToggleGroup
+                    type="multiple"
+                    value={Object.entries(picks)
+                      .filter(([, v]) => v)
+                      .map(([k]) => k)}
+                    onValueChange={(values: string[]) => {
+                      setSelections((prev) => ({
+                        ...prev,
+                        [match.matchIndex]: {
+                          home: values.includes('home'),
+                          draw: values.includes('draw'),
+                          away: values.includes('away'),
+                        },
+                      }))
+                    }}
+                  >
                     {CHOICES.map(({ key, label }) => (
-                      <button
+                      <ToggleGroupItem
                         key={key}
-                        onClick={() => togglePick(match.matchIndex, key)}
-                        className={`flex h-10 w-10 items-center justify-center rounded-md text-sm font-medium transition-colors ${
-                          picks[key]
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                        }`}
+                        value={key}
+                        className="h-10 w-10"
                       >
                         {label}
-                      </button>
+                      </ToggleGroupItem>
                     ))}
-                  </div>
+                  </ToggleGroup>
                 </div>
               )
             })}
@@ -189,16 +179,12 @@ export function BetBuilderClient({
 
         {/* Stats + submit */}
         <Card>
-          <CardContent className="space-y-4 pt-6">
+          <CardContent className="space-y-4">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Rader</span>
               <span className="text-foreground font-medium">
                 {rows.toLocaleString()}
               </span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Kostnad</span>
-              <span className="text-foreground font-medium">{cost} kr</span>
             </div>
 
             {error && <p className="text-destructive text-sm">{error}</p>}

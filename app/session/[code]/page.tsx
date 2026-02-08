@@ -37,7 +37,6 @@ export default async function SessionPage({ params }: Props) {
   return (
     <LobbyClient
       sessionCode={session.code}
-      betPerRow={session.betPerRow}
       status={session.status}
       participants={session.participants}
       currentParticipantId={participant.id}

@@ -85,7 +85,6 @@ export default async function ResultPage({ params }: Props) {
   return (
     <ResultClient
       sessionCode={code}
-      betPerRow={session.betPerRow}
       matches={matches}
       combined={combined}
       contributors={contributors}
