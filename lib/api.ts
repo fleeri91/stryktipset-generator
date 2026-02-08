@@ -18,15 +18,15 @@ export interface DrawInfo {
   drawComment: string
   closeTime: string
   jackpot: string | null
+  eventType: EventType
+  productName: string
   matches: MatchFromApi[]
 }
 
-export async function fetchDraw(
-  eventType: EventType = EventType.Europatipset
-): Promise<DrawInfo> {
+export async function fetchDraw(eventType: EventType): Promise<DrawInfo> {
   const url = `${BASE_URL}${eventType}/draws?accesskey=${SECRET}`
 
-  const res = await fetch(url, { next: { revalidate: 300 } }) // cache 5 min
+  const res = await fetch(url, { next: { revalidate: 300 } })
   if (!res.ok) {
     throw new Error(`Svenska Spel API error: ${res.status} ${res.statusText}`)
   }
@@ -35,12 +35,12 @@ export async function fetchDraw(
   const draw = data.draws[0]
 
   if (!draw) {
-    throw new Error('No active draw found')
+    throw new Error(`No active draw found for ${eventType}`)
   }
 
   const matches: MatchFromApi[] = draw.events
-    .filter((e) => !e.cancelled)
-    .map((e) => ({
+    .filter((e: Event) => !e.cancelled)
+    .map((e: Event) => ({
       eventNumber: e.eventNumber,
       homeTeam: getParticipantName(e, 'home'),
       awayTeam: getParticipantName(e, 'away'),
@@ -57,8 +57,23 @@ export async function fetchDraw(
     drawComment: draw.drawComment,
     closeTime: draw.closeTime,
     jackpot,
+    eventType,
+    productName: draw.productName,
     matches,
   }
+}
+
+export async function fetchAllDraws(): Promise<DrawInfo[]> {
+  const results = await Promise.allSettled([
+    fetchDraw(EventType.Stryktipset),
+    fetchDraw(EventType.Europatipset),
+  ])
+
+  return results
+    .filter(
+      (r): r is PromiseFulfilledResult<DrawInfo> => r.status === 'fulfilled'
+    )
+    .map((r) => r.value)
 }
 
 function getParticipantName(event: Event, type: string): string {
