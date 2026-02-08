@@ -1,3 +1,5 @@
-export default function Home() {
-  return <></>
+import { LandingClient } from './landing-client'
+
+export default function HomePage() {
+  return <LandingClient />
 }
