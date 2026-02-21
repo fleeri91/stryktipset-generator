@@ -19,13 +19,6 @@ export async function POST(
 
     const session = participant.session
 
-    if (session.status === 'GENERATED') {
-      return NextResponse.json(
-        { error: 'Bongen är redan genererad' },
-        { status: 409 }
-      )
-    }
-
     const allSubmitted = session.participants.every((p) => p.submitted)
     if (!allSubmitted) {
       return NextResponse.json(

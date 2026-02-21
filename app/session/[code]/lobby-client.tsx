@@ -48,10 +48,7 @@ export function LobbyClient({
   const isCurrentParticipantHost = currentParticipant?.isHost ?? false
 
   useEffect(() => {
-    if (status === 'GENERATED') {
-      router.push(`/session/${sessionCode}/result`)
-      return
-    }
+    if (status === 'GENERATED') return
 
     const intervalId = setInterval(() => {
       router.refresh()
@@ -237,7 +234,7 @@ export function LobbyClient({
                       {p.submitted ? 'Bong inskickad ✓' : 'Väntar...'}
                     </p>
                   </div>
-                  {isMe && status === 'BETTING' && (
+                  {isMe && (status === 'BETTING' || status === 'GENERATED') && (
                     <Button
                       variant={p.submitted ? 'outline' : 'default'}
                       size="sm"
@@ -256,14 +253,28 @@ export function LobbyClient({
 
         {/* Action area */}
         {status === 'GENERATED' ? (
-          <Button
-            size="lg"
-            className="w-full"
-            onClick={() => router.push(`/session/${sessionCode}/result`)}
-          >
-            <Trophy className="mr-1.5 h-4 w-4" />
-            Visa Kombinerad Bong
-          </Button>
+          <div className="space-y-3">
+            <Button
+              size="lg"
+              className="w-full"
+              onClick={() => router.push(`/session/${sessionCode}/result`)}
+            >
+              <Trophy className="mr-1.5 h-4 w-4" />
+              Visa Kombinerad Bong
+            </Button>
+            {isCurrentParticipantHost && (
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full"
+                disabled={isPending}
+                onClick={handleGenerate}
+              >
+                {isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
+                {isPending ? 'Genererar...' : 'Generera ny Kombinerad Bong'}
+              </Button>
+            )}
+          </div>
         ) : allSubmitted ? (
           <Button
             size="lg"

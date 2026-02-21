@@ -59,6 +59,7 @@ model Selection {
   home          Boolean     @default(false)
   draw          Boolean     @default(false)
   away          Boolean     @default(false)
+  firstChoice   String?     // 'home' | 'draw' | 'away' — the primary pick; null for legacy rows
 
   @@unique([participantId, matchIndex])
   @@index([participantId])

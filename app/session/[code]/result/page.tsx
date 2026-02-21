@@ -55,6 +55,7 @@ export default async function ResultPage({ params }: Props) {
       home: s.home,
       draw: s.draw,
       away: s.away,
+      firstChoice: s.firstChoice,
     }))
   )
 

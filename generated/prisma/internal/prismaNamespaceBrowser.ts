@@ -117,7 +117,8 @@ export const SelectionScalarFieldEnum = {
   matchIndex: 'matchIndex',
   home: 'home',
   draw: 'draw',
-  away: 'away'
+  away: 'away',
+  firstChoice: 'firstChoice'
 } as const
 
 export type SelectionScalarFieldEnum = (typeof SelectionScalarFieldEnum)[keyof typeof SelectionScalarFieldEnum]
@@ -137,4 +138,12 @@ export const QueryMode = {
 } as const
 
 export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+export const NullsOrder = {
+  first: 'first',
+  last: 'last'
+} as const
+
+export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 

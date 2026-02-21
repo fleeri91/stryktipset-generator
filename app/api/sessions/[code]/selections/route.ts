@@ -14,13 +14,6 @@ export async function PUT(
     if (result instanceof NextResponse) return result
     const participant = result
 
-    if (participant.session.status === 'GENERATED') {
-      return NextResponse.json(
-        { error: 'Sessionen är redan låst' },
-        { status: 403 }
-      )
-    }
-
     if (participant.session.closesAt < new Date()) {
       return NextResponse.json(
         { error: 'Sessionen har gått ut' },
@@ -53,6 +46,7 @@ export async function PUT(
           home: s.home,
           draw: s.draw,
           away: s.away,
+          firstChoice: s.firstChoice,
         })),
       }),
       // Mark participant as submitted

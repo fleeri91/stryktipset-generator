@@ -30,10 +30,6 @@ export default async function BetPage({ params }: Props) {
     redirect('/')
   }
 
-  if (participant.session.status === 'GENERATED') {
-    redirect(`/session/${code}`)
-  }
-
   const matches = participant.session.matches.map((m) => ({
     matchIndex: m.matchIndex,
     homeTeam: m.homeTeam,
@@ -44,10 +40,18 @@ export default async function BetPage({ params }: Props) {
 
   const existing = participant.selections.reduce(
     (acc, s) => {
-      acc[s.matchIndex] = { home: s.home, draw: s.draw, away: s.away }
+      acc[s.matchIndex] = {
+        home: s.home,
+        draw: s.draw,
+        away: s.away,
+        firstChoice: s.firstChoice,
+      }
       return acc
     },
-    {} as Record<number, { home: boolean; draw: boolean; away: boolean }>
+    {} as Record<
+      number,
+      { home: boolean; draw: boolean; away: boolean; firstChoice: string | null }
+    >
   )
 
   return (

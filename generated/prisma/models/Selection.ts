@@ -41,6 +41,7 @@ export type SelectionMinAggregateOutputType = {
   home: boolean | null
   draw: boolean | null
   away: boolean | null
+  firstChoice: string | null
 }
 
 export type SelectionMaxAggregateOutputType = {
@@ -50,6 +51,7 @@ export type SelectionMaxAggregateOutputType = {
   home: boolean | null
   draw: boolean | null
   away: boolean | null
+  firstChoice: string | null
 }
 
 export type SelectionCountAggregateOutputType = {
@@ -59,6 +61,7 @@ export type SelectionCountAggregateOutputType = {
   home: number
   draw: number
   away: number
+  firstChoice: number
   _all: number
 }
 
@@ -78,6 +81,7 @@ export type SelectionMinAggregateInputType = {
   home?: true
   draw?: true
   away?: true
+  firstChoice?: true
 }
 
 export type SelectionMaxAggregateInputType = {
@@ -87,6 +91,7 @@ export type SelectionMaxAggregateInputType = {
   home?: true
   draw?: true
   away?: true
+  firstChoice?: true
 }
 
 export type SelectionCountAggregateInputType = {
@@ -96,6 +101,7 @@ export type SelectionCountAggregateInputType = {
   home?: true
   draw?: true
   away?: true
+  firstChoice?: true
   _all?: true
 }
 
@@ -192,6 +198,7 @@ export type SelectionGroupByOutputType = {
   home: boolean
   draw: boolean
   away: boolean
+  firstChoice: string | null
   _count: SelectionCountAggregateOutputType | null
   _avg: SelectionAvgAggregateOutputType | null
   _sum: SelectionSumAggregateOutputType | null
@@ -224,6 +231,7 @@ export type SelectionWhereInput = {
   home?: Prisma.BoolFilter<"Selection"> | boolean
   draw?: Prisma.BoolFilter<"Selection"> | boolean
   away?: Prisma.BoolFilter<"Selection"> | boolean
+  firstChoice?: Prisma.StringNullableFilter<"Selection"> | string | null
   participant?: Prisma.XOR<Prisma.ParticipantScalarRelationFilter, Prisma.ParticipantWhereInput>
 }
 
@@ -234,6 +242,7 @@ export type SelectionOrderByWithRelationInput = {
   home?: Prisma.SortOrder
   draw?: Prisma.SortOrder
   away?: Prisma.SortOrder
+  firstChoice?: Prisma.SortOrderInput | Prisma.SortOrder
   participant?: Prisma.ParticipantOrderByWithRelationInput
 }
 
@@ -248,6 +257,7 @@ export type SelectionWhereUniqueInput = Prisma.AtLeast<{
   home?: Prisma.BoolFilter<"Selection"> | boolean
   draw?: Prisma.BoolFilter<"Selection"> | boolean
   away?: Prisma.BoolFilter<"Selection"> | boolean
+  firstChoice?: Prisma.StringNullableFilter<"Selection"> | string | null
   participant?: Prisma.XOR<Prisma.ParticipantScalarRelationFilter, Prisma.ParticipantWhereInput>
 }, "id" | "participantId_matchIndex">
 
@@ -258,6 +268,7 @@ export type SelectionOrderByWithAggregationInput = {
   home?: Prisma.SortOrder
   draw?: Prisma.SortOrder
   away?: Prisma.SortOrder
+  firstChoice?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.SelectionCountOrderByAggregateInput
   _avg?: Prisma.SelectionAvgOrderByAggregateInput
   _max?: Prisma.SelectionMaxOrderByAggregateInput
@@ -275,6 +286,7 @@ export type SelectionScalarWhereWithAggregatesInput = {
   home?: Prisma.BoolWithAggregatesFilter<"Selection"> | boolean
   draw?: Prisma.BoolWithAggregatesFilter<"Selection"> | boolean
   away?: Prisma.BoolWithAggregatesFilter<"Selection"> | boolean
+  firstChoice?: Prisma.StringNullableWithAggregatesFilter<"Selection"> | string | null
 }
 
 export type SelectionCreateInput = {
@@ -283,6 +295,7 @@ export type SelectionCreateInput = {
   home?: boolean
   draw?: boolean
   away?: boolean
+  firstChoice?: string | null
   participant: Prisma.ParticipantCreateNestedOneWithoutSelectionsInput
 }
 
@@ -293,6 +306,7 @@ export type SelectionUncheckedCreateInput = {
   home?: boolean
   draw?: boolean
   away?: boolean
+  firstChoice?: string | null
 }
 
 export type SelectionUpdateInput = {
@@ -301,6 +315,7 @@ export type SelectionUpdateInput = {
   home?: Prisma.BoolFieldUpdateOperationsInput | boolean
   draw?: Prisma.BoolFieldUpdateOperationsInput | boolean
   away?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstChoice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   participant?: Prisma.ParticipantUpdateOneRequiredWithoutSelectionsNestedInput
 }
 
@@ -311,6 +326,7 @@ export type SelectionUncheckedUpdateInput = {
   home?: Prisma.BoolFieldUpdateOperationsInput | boolean
   draw?: Prisma.BoolFieldUpdateOperationsInput | boolean
   away?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstChoice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type SelectionCreateManyInput = {
@@ -320,6 +336,7 @@ export type SelectionCreateManyInput = {
   home?: boolean
   draw?: boolean
   away?: boolean
+  firstChoice?: string | null
 }
 
 export type SelectionUpdateManyMutationInput = {
@@ -328,6 +345,7 @@ export type SelectionUpdateManyMutationInput = {
   home?: Prisma.BoolFieldUpdateOperationsInput | boolean
   draw?: Prisma.BoolFieldUpdateOperationsInput | boolean
   away?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstChoice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type SelectionUncheckedUpdateManyInput = {
@@ -337,6 +355,7 @@ export type SelectionUncheckedUpdateManyInput = {
   home?: Prisma.BoolFieldUpdateOperationsInput | boolean
   draw?: Prisma.BoolFieldUpdateOperationsInput | boolean
   away?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstChoice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type SelectionListRelationFilter = {
@@ -361,6 +380,7 @@ export type SelectionCountOrderByAggregateInput = {
   home?: Prisma.SortOrder
   draw?: Prisma.SortOrder
   away?: Prisma.SortOrder
+  firstChoice?: Prisma.SortOrder
 }
 
 export type SelectionAvgOrderByAggregateInput = {
@@ -374,6 +394,7 @@ export type SelectionMaxOrderByAggregateInput = {
   home?: Prisma.SortOrder
   draw?: Prisma.SortOrder
   away?: Prisma.SortOrder
+  firstChoice?: Prisma.SortOrder
 }
 
 export type SelectionMinOrderByAggregateInput = {
@@ -383,6 +404,7 @@ export type SelectionMinOrderByAggregateInput = {
   home?: Prisma.SortOrder
   draw?: Prisma.SortOrder
   away?: Prisma.SortOrder
+  firstChoice?: Prisma.SortOrder
 }
 
 export type SelectionSumOrderByAggregateInput = {
@@ -431,12 +453,17 @@ export type SelectionUncheckedUpdateManyWithoutParticipantNestedInput = {
   deleteMany?: Prisma.SelectionScalarWhereInput | Prisma.SelectionScalarWhereInput[]
 }
 
+export type NullableStringFieldUpdateOperationsInput = {
+  set?: string | null
+}
+
 export type SelectionCreateWithoutParticipantInput = {
   id?: string
   matchIndex: number
   home?: boolean
   draw?: boolean
   away?: boolean
+  firstChoice?: string | null
 }
 
 export type SelectionUncheckedCreateWithoutParticipantInput = {
@@ -445,6 +472,7 @@ export type SelectionUncheckedCreateWithoutParticipantInput = {
   home?: boolean
   draw?: boolean
   away?: boolean
+  firstChoice?: string | null
 }
 
 export type SelectionCreateOrConnectWithoutParticipantInput = {
@@ -483,6 +511,7 @@ export type SelectionScalarWhereInput = {
   home?: Prisma.BoolFilter<"Selection"> | boolean
   draw?: Prisma.BoolFilter<"Selection"> | boolean
   away?: Prisma.BoolFilter<"Selection"> | boolean
+  firstChoice?: Prisma.StringNullableFilter<"Selection"> | string | null
 }
 
 export type SelectionCreateManyParticipantInput = {
@@ -491,6 +520,7 @@ export type SelectionCreateManyParticipantInput = {
   home?: boolean
   draw?: boolean
   away?: boolean
+  firstChoice?: string | null
 }
 
 export type SelectionUpdateWithoutParticipantInput = {
@@ -499,6 +529,7 @@ export type SelectionUpdateWithoutParticipantInput = {
   home?: Prisma.BoolFieldUpdateOperationsInput | boolean
   draw?: Prisma.BoolFieldUpdateOperationsInput | boolean
   away?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstChoice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type SelectionUncheckedUpdateWithoutParticipantInput = {
@@ -507,6 +538,7 @@ export type SelectionUncheckedUpdateWithoutParticipantInput = {
   home?: Prisma.BoolFieldUpdateOperationsInput | boolean
   draw?: Prisma.BoolFieldUpdateOperationsInput | boolean
   away?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstChoice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type SelectionUncheckedUpdateManyWithoutParticipantInput = {
@@ -515,6 +547,7 @@ export type SelectionUncheckedUpdateManyWithoutParticipantInput = {
   home?: Prisma.BoolFieldUpdateOperationsInput | boolean
   draw?: Prisma.BoolFieldUpdateOperationsInput | boolean
   away?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  firstChoice?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 
@@ -526,6 +559,7 @@ export type SelectionSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   home?: boolean
   draw?: boolean
   away?: boolean
+  firstChoice?: boolean
   participant?: boolean | Prisma.ParticipantDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["selection"]>
 
@@ -536,6 +570,7 @@ export type SelectionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ext
   home?: boolean
   draw?: boolean
   away?: boolean
+  firstChoice?: boolean
   participant?: boolean | Prisma.ParticipantDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["selection"]>
 
@@ -546,6 +581,7 @@ export type SelectionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
   home?: boolean
   draw?: boolean
   away?: boolean
+  firstChoice?: boolean
   participant?: boolean | Prisma.ParticipantDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["selection"]>
 
@@ -556,9 +592,10 @@ export type SelectionSelectScalar = {
   home?: boolean
   draw?: boolean
   away?: boolean
+  firstChoice?: boolean
 }
 
-export type SelectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "participantId" | "matchIndex" | "home" | "draw" | "away", ExtArgs["result"]["selection"]>
+export type SelectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "participantId" | "matchIndex" | "home" | "draw" | "away" | "firstChoice", ExtArgs["result"]["selection"]>
 export type SelectionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   participant?: boolean | Prisma.ParticipantDefaultArgs<ExtArgs>
 }
@@ -581,6 +618,7 @@ export type $SelectionPayload<ExtArgs extends runtime.Types.Extensions.InternalA
     home: boolean
     draw: boolean
     away: boolean
+    firstChoice: string | null
   }, ExtArgs["result"]["selection"]>
   composites: {}
 }
@@ -1011,6 +1049,7 @@ export interface SelectionFieldRefs {
   readonly home: Prisma.FieldRef<"Selection", 'Boolean'>
   readonly draw: Prisma.FieldRef<"Selection", 'Boolean'>
   readonly away: Prisma.FieldRef<"Selection", 'Boolean'>
+  readonly firstChoice: Prisma.FieldRef<"Selection", 'String'>
 }
     
 

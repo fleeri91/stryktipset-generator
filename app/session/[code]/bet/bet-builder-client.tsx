@@ -5,9 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Badge } from '@/components/ui/badge'
-import { calculateRows } from '@/lib/bong'
 import { formatKickoff } from '@/lib/matches'
 
 interface MatchData {
@@ -22,6 +20,7 @@ interface Picks {
   home: boolean
   draw: boolean
   away: boolean
+  firstChoice?: string | null
 }
 
 interface BetBuilderClientProps {
@@ -32,10 +31,12 @@ interface BetBuilderClientProps {
   isEditing: boolean
 }
 
-const CHOICES = [
-  { key: 'home' as const, label: '1' },
-  { key: 'draw' as const, label: 'X' },
-  { key: 'away' as const, label: '2' },
+type PickKey = 'home' | 'draw' | 'away'
+
+const CHOICES: { key: PickKey; label: string }[] = [
+  { key: 'home', label: '1' },
+  { key: 'draw', label: 'X' },
+  { key: 'away', label: '2' },
 ]
 
 export function BetBuilderClient({
@@ -49,25 +50,53 @@ export function BetBuilderClient({
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
 
-  const [selections, setSelections] = useState<Record<number, Picks>>(() => {
-    const initial: Record<number, Picks> = {}
-    matches.forEach((m) => {
-      initial[m.matchIndex] = existingSelections[m.matchIndex] ?? {
-        home: false,
-        draw: false,
-        away: false,
-      }
-    })
-    return initial
-  })
+  const [selections, setSelections] = useState<Record<number, PickKey[]>>(
+    () => {
+      const initial: Record<number, PickKey[]> = {}
+      matches.forEach((m) => {
+        const existing = existingSelections[m.matchIndex]
+        if (existing) {
+          const allPicks = CHOICES.map((c) => c.key).filter(
+            (k) => existing[k]
+          ) as PickKey[]
+          const fc = existing.firstChoice as PickKey | null | undefined
+          initial[m.matchIndex] =
+            fc && allPicks.includes(fc)
+              ? [fc, ...allPicks.filter((k) => k !== fc)]
+              : allPicks
+        } else {
+          initial[m.matchIndex] = []
+        }
+      })
+      return initial
+    }
+  )
 
   const selectionsList = useMemo(
-    () => matches.map((m) => selections[m.matchIndex]),
+    () =>
+      matches.map((m) => {
+        const arr = selections[m.matchIndex]
+        return {
+          home: arr.includes('home'),
+          draw: arr.includes('draw'),
+          away: arr.includes('away'),
+        }
+      }),
     [matches, selections]
   )
 
   const allHavePick = selectionsList.every((s) => s.home || s.draw || s.away)
-  const rows = calculateRows(selectionsList)
+
+  function togglePick(matchIndex: number, key: PickKey) {
+    setSelections((prev) => {
+      const current = prev[matchIndex]
+      if (current.includes(key)) {
+        return { ...prev, [matchIndex]: current.filter((k) => k !== key) }
+      }
+      if (current.length >= 2) return prev
+      return { ...prev, [matchIndex]: [...current, key] }
+    })
+  }
 
   function handleSubmit() {
     if (!allHavePick) return
@@ -76,10 +105,16 @@ export function BetBuilderClient({
     startTransition(async () => {
       try {
         const payload = {
-          selections: matches.map((m) => ({
-            matchIndex: m.matchIndex,
-            ...selections[m.matchIndex],
-          })),
+          selections: matches.map((m) => {
+            const arr = selections[m.matchIndex]
+            return {
+              matchIndex: m.matchIndex,
+              home: arr.includes('home'),
+              draw: arr.includes('draw'),
+              away: arr.includes('away'),
+              firstChoice: arr[0],
+            }
+          }),
         }
 
         const res = await fetch(`/api/sessions/${sessionCode}/selections`, {
@@ -124,7 +159,7 @@ export function BetBuilderClient({
           <CardContent className="space-y-1">
             {matches.map((match) => {
               const picks = selections[match.matchIndex]
-              const hasPick = picks.home || picks.draw || picks.away
+              const hasPick = picks.length > 0
               return (
                 <div
                   key={match.matchIndex}
@@ -145,32 +180,29 @@ export function BetBuilderClient({
                       {match.league} · {formatKickoff(match.kickoff)}
                     </p>
                   </div>
-                  <ToggleGroup
-                    type="multiple"
-                    value={Object.entries(picks)
-                      .filter(([, v]) => v)
-                      .map(([k]) => k)}
-                    onValueChange={(values: string[]) => {
-                      setSelections((prev) => ({
-                        ...prev,
-                        [match.matchIndex]: {
-                          home: values.includes('home'),
-                          draw: values.includes('draw'),
-                          away: values.includes('away'),
-                        },
-                      }))
-                    }}
-                  >
-                    {CHOICES.map(({ key, label }) => (
-                      <ToggleGroupItem
-                        key={key}
-                        value={key}
-                        className="h-10 w-10"
-                      >
-                        {label}
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
+                  <div className="flex gap-1">
+                    {CHOICES.map(({ key, label }) => {
+                      const pos = selections[match.matchIndex].indexOf(key)
+                      const isPrimary = pos === 0
+                      const isSecondary = pos === 1
+                      return (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => togglePick(match.matchIndex, key)}
+                          className={`h-10 w-10 rounded-md border text-sm font-medium transition-colors ${
+                            isPrimary
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : isSecondary
+                                ? 'bg-primary/20 text-primary border-primary/30'
+                                : 'border-input text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
               )
             })}
@@ -180,13 +212,6 @@ export function BetBuilderClient({
         {/* Stats + submit */}
         <Card>
           <CardContent className="space-y-4">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Rader</span>
-              <span className="text-foreground font-medium">
-                {rows.toLocaleString()}
-              </span>
-            </div>
-
             {error && <p className="text-destructive text-sm">{error}</p>}
 
             <Button

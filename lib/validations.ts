@@ -25,12 +25,20 @@ export const joinSessionSchema = z.object({
 export const submitSelectionsSchema = z.object({
   selections: z
     .array(
-      z.object({
-        matchIndex: z.number().int().min(1).max(13),
-        home: z.boolean(),
-        draw: z.boolean(),
-        away: z.boolean(),
-      })
+      z
+        .object({
+          matchIndex: z.number().int().min(1).max(13),
+          home: z.boolean(),
+          draw: z.boolean(),
+          away: z.boolean(),
+          firstChoice: z.enum(['home', 'draw', 'away']),
+        })
+        .refine((s) => s[s.firstChoice] === true, {
+          message: 'firstChoice måste vara ett valt alternativ',
+        })
+        .refine((s) => [s.home, s.draw, s.away].filter(Boolean).length <= 2, {
+          message: 'Max 2 val per match',
+        })
     )
     .min(1)
     .refine(
