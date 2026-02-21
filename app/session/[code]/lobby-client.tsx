@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Copy, Check, Users, Crown, Loader2, Trophy } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -27,6 +27,8 @@ interface LobbyClientProps {
   currentParticipantId: string
 }
 
+const POLL_INTERVAL_MS = 3000
+
 export function LobbyClient({
   sessionCode,
   status,
@@ -37,6 +39,19 @@ export function LobbyClient({
   const [isPending, startTransition] = useTransition()
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (status === 'GENERATED') {
+      router.push(`/session/${sessionCode}/result`)
+      return
+    }
+
+    const intervalId = setInterval(() => {
+      router.refresh()
+    }, POLL_INTERVAL_MS)
+
+    return () => clearInterval(intervalId)
+  }, [status, sessionCode, router])
 
   async function copyCode() {
     try {
@@ -127,6 +142,14 @@ export function LobbyClient({
               <CardTitle className="flex items-center gap-2 text-sm">
                 <Users className="h-4 w-4" />
                 Deltagare ({participants.length})
+                {status === 'BETTING' && (
+                  <span className="ml-1 flex items-center gap-1">
+                    <span className="bg-primary h-1.5 w-1.5 animate-pulse rounded-full" />
+                    <span className="text-muted-foreground text-[10px] font-normal tracking-wider uppercase">
+                      Live
+                    </span>
+                  </span>
+                )}
               </CardTitle>
               {allSubmitted && (
                 <span className="bg-primary/10 text-primary rounded-full px-2.5 py-0.5 text-[10px] tracking-widest uppercase">

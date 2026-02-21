@@ -68,15 +68,17 @@ export function ResultClient({
     <div className="flex min-h-dvh flex-col items-center px-6 py-10">
       <div className="w-full max-w-lg space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            onClick={() => router.push(`/session/${sessionCode}`)}
-          >
-            <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-            Tillbaka
-          </Button>
-        </div>
+        {
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              onClick={() => router.push(`/session/${sessionCode}`)}
+            >
+              <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+              Tillbaka
+            </Button>
+          </div>
+        }
 
         {/* Title */}
         <div className="text-center">
