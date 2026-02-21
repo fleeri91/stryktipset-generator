@@ -28,6 +28,7 @@ export async function POST(
         sessionId: participant.session.id,
         id: { not: participant.id },
       },
+      orderBy: { id: 'asc' },
     })
 
     if (others.length === 0) {

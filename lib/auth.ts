@@ -22,7 +22,7 @@ export async function getParticipant(
   const token = cookieStore.get('participant-token')?.value
 
   if (!token) {
-    return NextResponse.json({ error: 'Ej autentiserad' }, { status: 401 })
+    return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 })
   }
 
   const participant = await prisma.participant.findUnique({
@@ -31,7 +31,7 @@ export async function getParticipant(
   })
 
   if (!participant || participant.session.code !== code.toUpperCase()) {
-    return NextResponse.json({ error: 'Ej behörig' }, { status: 403 })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }
 
   return participant
@@ -49,7 +49,7 @@ export async function getParticipantWithSessionParticipants(
   const token = cookieStore.get('participant-token')?.value
 
   if (!token) {
-    return NextResponse.json({ error: 'Ej autentiserad' }, { status: 401 })
+    return NextResponse.json({ error: 'Unauthenticated' }, { status: 401 })
   }
 
   const participant = await prisma.participant.findUnique({
@@ -58,7 +58,7 @@ export async function getParticipantWithSessionParticipants(
   })
 
   if (!participant || participant.session.code !== code.toUpperCase()) {
-    return NextResponse.json({ error: 'Ej behörig' }, { status: 403 })
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   }
 
   return participant

@@ -1,12 +1,15 @@
+import { randomInt } from 'crypto'
+
 /**
  * Generate a 6-character alphanumeric session code.
  * Excludes ambiguous characters (0/O, 1/I/L).
+ * Uses crypto.randomInt for cryptographically-safe uniform distribution.
  */
 export function generateSessionCode(): string {
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
   let code = ''
   for (let i = 0; i < 6; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)]
+    code += chars[randomInt(chars.length)]
   }
   return code
 }
@@ -21,7 +24,44 @@ export function calculateRows(
 }
 
 type CombinedPick = { matchIndex: number; home: boolean; draw: boolean; away: boolean }
-type PrimaryCountsMap = Record<number, { home: number; draw: number; away: number }>
+export type PrimaryCountsMap = Record<number, { home: number; draw: number; away: number }>
+
+type Selection = {
+  matchIndex: number
+  home: boolean
+  draw: boolean
+  away: boolean
+  firstChoice: string | null
+}
+
+/**
+ * Count each participant's primary vote per match per outcome.
+ * Rows without firstChoice (legacy data) treat all selected outcomes as primary.
+ */
+export function buildPrimaryCounts(
+  allSelections: Selection[][],
+  matchIndices: number[]
+): PrimaryCountsMap {
+  const counts: PrimaryCountsMap = {}
+  for (const idx of matchIndices) {
+    counts[idx] = { home: 0, draw: 0, away: 0 }
+  }
+  for (const participantSelections of allSelections) {
+    for (const s of participantSelections) {
+      const entry = counts[s.matchIndex]
+      if (!entry) continue
+      const fc = s.firstChoice
+      if (fc === 'home' || fc === 'draw' || fc === 'away') {
+        entry[fc]++
+      } else {
+        if (s.home) entry.home++
+        if (s.draw) entry.draw++
+        if (s.away) entry.away++
+      }
+    }
+  }
+  return counts
+}
 
 /**
  * Trim a combined bong to fit within a max-rows budget.
@@ -70,7 +110,8 @@ export function trimToMaxRows(
     )
 
     const target = removable[0]
-    result.find((p) => p.matchIndex === target.matchIndex)![target.key] = false
+    const match = result.find((p) => p.matchIndex === target.matchIndex)
+    if (match) match[target.key] = false
   }
 
   return result
@@ -87,38 +128,12 @@ export function trimToMaxRows(
  * Within each category the most popular primary pick is always included.
  */
 export function generateSystemBong(
-  allSelections: {
-    matchIndex: number
-    home: boolean
-    draw: boolean
-    away: boolean
-    firstChoice: string | null
-  }[][],
+  allSelections: Selection[][],
   matchIndices: number[],
   halvgarderingar: number,
   helgarderingar: number
 ): { matchIndex: number; home: boolean; draw: boolean; away: boolean }[] {
-  // Count primary votes per match per outcome
-  const primaryVotes: Record<number, { home: number; draw: number; away: number }> = {}
-  for (const idx of matchIndices) {
-    primaryVotes[idx] = { home: 0, draw: 0, away: 0 }
-  }
-
-  for (const participantSelections of allSelections) {
-    for (const s of participantSelections) {
-      const entry = primaryVotes[s.matchIndex]
-      if (!entry) continue
-      const fc = s.firstChoice
-      if (fc === 'home' || fc === 'draw' || fc === 'away') {
-        entry[fc]++
-      } else {
-        // Legacy rows without firstChoice: treat all selected outcomes as primary
-        if (s.home) entry.home++
-        if (s.draw) entry.draw++
-        if (s.away) entry.away++
-      }
-    }
-  }
+  const primaryVotes = buildPrimaryCounts(allSelections, matchIndices)
 
   // For each match, sort outcomes by vote count (descending)
   const matchData = matchIndices.map((matchIndex) => {
@@ -152,9 +167,9 @@ export function generateSystemBong(
       sorted.slice(0, 2).forEach(({ key }) => { result[key] = true })
       return result
     }
-    // Single pick: most popular primary, default to home if no votes
+    // Single pick: most popular primary; default to 'home' when all votes are zero
     const result = { matchIndex, home: false, draw: false, away: false }
-    result[sorted[0].key] = true
+    result[sorted[0]?.key ?? 'home'] = true
     return result
   })
 }
@@ -170,13 +185,7 @@ export function generateSystemBong(
  * as primary picks (backward-compatible OR behaviour).
  */
 export function mergeSelections(
-  allSelections: {
-    matchIndex: number
-    home: boolean
-    draw: boolean
-    away: boolean
-    firstChoice: string | null
-  }[][]
+  allSelections: Selection[][]
 ): { matchIndex: number; home: boolean; draw: boolean; away: boolean }[] {
   const merged = new Map<
     number,

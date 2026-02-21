@@ -54,7 +54,7 @@ export async function POST(request: Request) {
       },
     })
 
-    const host = session.participants[0]
+    const host = session.participants.find((p) => p.isHost)!
 
     const cookieStore = await cookies()
     cookieStore.set('participant-token', host.token, {

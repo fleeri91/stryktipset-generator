@@ -6,7 +6,6 @@ import { ArrowLeft, Trophy, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { calculateRows } from '@/lib/bong'
 
 interface MatchData {
   matchIndex: number
@@ -38,6 +37,7 @@ interface ResultClientProps {
   >
   participants: Participant[]
   participantCount: number
+  rows: number
 }
 
 const CHOICES = [
@@ -61,11 +61,10 @@ export function ResultClient({
   contributors,
   participants,
   participantCount,
+  rows,
 }: ResultClientProps) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
-
-  const rows = calculateRows(combined)
 
   async function copyResult() {
     const participantNames = participants.map((p) => p.name).join(', ')
@@ -103,8 +102,7 @@ export function ResultClient({
     <div className="flex min-h-dvh flex-col items-center px-6 py-10">
       <div className="w-full max-w-lg space-y-6">
         {/* Header */}
-        {
-          <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
             <Button
               variant="ghost"
               onClick={() => router.push(`/session/${sessionCode}`)}
@@ -125,8 +123,7 @@ export function ResultClient({
                 </>
               )}
             </Button>
-          </div>
-        }
+        </div>
 
         {/* Title */}
         <div className="text-center">
@@ -200,7 +197,6 @@ export function ResultClient({
                         : []
                     }
                     disabled
-                    className="pointer-events-none"
                   >
                     {CHOICES.map(({ key, label }) => {
                       const isSelected = picks?.[key] ?? false
