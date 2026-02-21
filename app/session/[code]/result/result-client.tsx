@@ -144,7 +144,7 @@ export function ResultClient({
           <Card>
             <CardContent className="p-3 text-center">
               <p className="text-primary text-lg font-bold">
-                {rows.toLocaleString()}
+                {rows.toLocaleString('sv-SE')}
               </p>
               <p className="text-muted-foreground text-[10px] tracking-wider uppercase">
                 Rader
@@ -154,7 +154,7 @@ export function ResultClient({
           <Card>
             <CardContent className="p-3 text-center">
               <p className="text-primary text-lg font-bold">
-                {Math.ceil(rows / participantCount)} kr
+                {Math.ceil(rows / participantCount).toLocaleString('sv-SE')} kr
               </p>
               <p className="text-muted-foreground text-[10px] tracking-wider uppercase">
                 Per person

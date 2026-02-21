@@ -749,7 +749,10 @@ export const SessionScalarFieldEnum = {
   createdAt: 'createdAt',
   closesAt: 'closesAt',
   eventType: 'eventType',
-  drawNumber: 'drawNumber'
+  drawNumber: 'drawNumber',
+  maxRows: 'maxRows',
+  halvgarderingar: 'halvgarderingar',
+  helgarderingar: 'helgarderingar'
 } as const
 
 export type SessionScalarFieldEnum = (typeof SessionScalarFieldEnum)[keyof typeof SessionScalarFieldEnum]

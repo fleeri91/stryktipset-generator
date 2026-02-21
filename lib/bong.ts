@@ -20,6 +20,145 @@ export function calculateRows(
   }, 1)
 }
 
+type CombinedPick = { matchIndex: number; home: boolean; draw: boolean; away: boolean }
+type PrimaryCountsMap = Record<number, { home: number; draw: number; away: number }>
+
+/**
+ * Trim a combined bong to fit within a max-rows budget.
+ *
+ * Uses a greedy strategy: repeatedly removes the pick with the fewest primary
+ * supporters from the match with the most selected outcomes, until rows ≤ maxRows.
+ * Single-pick matches are never trimmed (removing them would leave a match empty).
+ */
+export function trimToMaxRows(
+  combined: CombinedPick[],
+  maxRows: number,
+  primaryCounts: PrimaryCountsMap
+): CombinedPick[] {
+  const result = combined.map((p) => ({ ...p }))
+
+  while (calculateRows(result) > maxRows) {
+    const removable: {
+      matchIndex: number
+      key: 'home' | 'draw' | 'away'
+      primaryCount: number
+      matchPickCount: number
+    }[] = []
+
+    for (const pick of result) {
+      const selected = (['home', 'draw', 'away'] as const).filter((k) => pick[k])
+      if (selected.length <= 1) continue // never empty a match
+
+      for (const key of selected) {
+        removable.push({
+          matchIndex: pick.matchIndex,
+          key,
+          primaryCount: primaryCounts[pick.matchIndex]?.[key] ?? 0,
+          matchPickCount: selected.length,
+        })
+      }
+    }
+
+    if (removable.length === 0) break // cannot trim further
+
+    // Remove least-supported pick first; break ties by preferring the match
+    // with more picks (higher multiplier contributes most to row count)
+    removable.sort((a, b) =>
+      a.primaryCount !== b.primaryCount
+        ? a.primaryCount - b.primaryCount
+        : b.matchPickCount - a.matchPickCount
+    )
+
+    const target = removable[0]
+    result.find((p) => p.matchIndex === target.matchIndex)![target.key] = false
+  }
+
+  return result
+}
+
+/**
+ * Generate a combined system bong with a given number of halvgarderingar
+ * (2-outcome matches) and helgarderingar (3-outcome matches).
+ *
+ * Matches are ranked by "contentiousness" — how many participants picked
+ * a different outcome as their primary. The most contested matches get
+ * helgarderingar first, then halvgarderingar, then single picks.
+ *
+ * Within each category the most popular primary pick is always included.
+ */
+export function generateSystemBong(
+  allSelections: {
+    matchIndex: number
+    home: boolean
+    draw: boolean
+    away: boolean
+    firstChoice: string | null
+  }[][],
+  matchIndices: number[],
+  halvgarderingar: number,
+  helgarderingar: number
+): { matchIndex: number; home: boolean; draw: boolean; away: boolean }[] {
+  // Count primary votes per match per outcome
+  const primaryVotes: Record<number, { home: number; draw: number; away: number }> = {}
+  for (const idx of matchIndices) {
+    primaryVotes[idx] = { home: 0, draw: 0, away: 0 }
+  }
+
+  for (const participantSelections of allSelections) {
+    for (const s of participantSelections) {
+      const entry = primaryVotes[s.matchIndex]
+      if (!entry) continue
+      const fc = s.firstChoice
+      if (fc === 'home' || fc === 'draw' || fc === 'away') {
+        entry[fc]++
+      } else {
+        // Legacy rows without firstChoice: treat all selected outcomes as primary
+        if (s.home) entry.home++
+        if (s.draw) entry.draw++
+        if (s.away) entry.away++
+      }
+    }
+  }
+
+  // For each match, sort outcomes by vote count (descending)
+  const matchData = matchIndices.map((matchIndex) => {
+    const votes = primaryVotes[matchIndex]
+    const sorted = (['home', 'draw', 'away'] as const)
+      .map((k) => ({ key: k, votes: votes[k] }))
+      .sort((a, b) => b.votes - a.votes)
+    return { matchIndex, sorted }
+  })
+
+  // Rank matches by contentiousness:
+  // primary key = second-highest vote count (halvgardering potential)
+  // secondary key = third-highest vote count (helgardering potential)
+  const ranked = [...matchData].sort((a, b) => {
+    const diff = b.sorted[1].votes - a.sorted[1].votes
+    if (diff !== 0) return diff
+    return b.sorted[2].votes - a.sorted[2].votes
+  })
+
+  const helSet = new Set(ranked.slice(0, helgarderingar).map((m) => m.matchIndex))
+  const halvSet = new Set(
+    ranked.slice(helgarderingar, helgarderingar + halvgarderingar).map((m) => m.matchIndex)
+  )
+
+  return matchData.map(({ matchIndex, sorted }) => {
+    if (helSet.has(matchIndex)) {
+      return { matchIndex, home: true, draw: true, away: true }
+    }
+    if (halvSet.has(matchIndex)) {
+      const result = { matchIndex, home: false, draw: false, away: false }
+      sorted.slice(0, 2).forEach(({ key }) => { result[key] = true })
+      return result
+    }
+    // Single pick: most popular primary, default to home if no votes
+    const result = { matchIndex, home: false, draw: false, away: false }
+    result[sorted[0].key] = true
+    return result
+  })
+}
+
 /**
  * Merge all participants' selections using primary-pick logic.
  *

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Copy, Check, Users, Crown, Loader2, Trophy } from 'lucide-react'
+import { Copy, Check, Users, Crown, Loader2, Trophy, Minus, Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -41,6 +41,9 @@ export function LobbyClient({
   const [confirmLeave, setConfirmLeave] = useState(false)
   const [isLeavePending, setLeavePending] = useState(false)
   const [confirmCancel, setConfirmCancel] = useState(false)
+  const [showGenerateModal, setShowGenerateModal] = useState(false)
+  const [halvgarderingar, setHalvgarderingar] = useState(0)
+  const [helgarderingar, setHelgarderingar] = useState(0)
 
   const currentParticipant = participants.find(
     (p) => p.id === currentParticipantId
@@ -65,12 +68,21 @@ export function LobbyClient({
     } catch {}
   }
 
+  function handleOpenGenerateModal() {
+    setHalvgarderingar(0)
+    setHelgarderingar(0)
+    setShowGenerateModal(true)
+  }
+
   function handleGenerate() {
     setError('')
+    setShowGenerateModal(false)
     startTransition(async () => {
       try {
         const res = await fetch(`/api/sessions/${sessionCode}/generate`, {
           method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ halvgarderingar, helgarderingar }),
         })
 
         if (!res.ok) {
@@ -268,7 +280,7 @@ export function LobbyClient({
                 variant="outline"
                 className="w-full"
                 disabled={isPending}
-                onClick={handleGenerate}
+                onClick={handleOpenGenerateModal}
               >
                 {isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
                 {isPending ? 'Genererar...' : 'Generera ny Kombinerad Bong'}
@@ -276,15 +288,17 @@ export function LobbyClient({
             )}
           </div>
         ) : allSubmitted ? (
-          <Button
-            size="lg"
-            className="w-full"
-            disabled={isPending}
-            onClick={handleGenerate}
-          >
-            {isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
-            {isPending ? 'Genererar...' : 'Generera Kombinerad Bong'}
-          </Button>
+          <div className="space-y-3">
+            <Button
+              size="lg"
+              className="w-full"
+              disabled={isPending}
+              onClick={handleOpenGenerateModal}
+            >
+              {isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
+              {isPending ? 'Genererar...' : 'Generera Kombinerad Bong'}
+            </Button>
+          </div>
         ) : (
           <div className="text-muted-foreground border-border rounded-lg border border-dashed p-4 text-center text-xs">
             Väntar på att alla skickar in sina bongar...
@@ -305,6 +319,117 @@ export function LobbyClient({
           </div>
         )}
       </div>
+
+      {/* Generate modal */}
+      {showGenerateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <Card className="w-full max-w-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-base">Generera Kombinerad Bong</CardTitle>
+                  <CardDescription className="mt-1">
+                    Välj antal garderingar.
+                  </CardDescription>
+                </div>
+                <button
+                  className="text-muted-foreground hover:text-foreground -mt-1 -mr-1 p-1 transition-colors"
+                  onClick={() => setShowGenerateModal(false)}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-5">
+              {/* Halvgarderingar */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Halvgarderingar</p>
+                  <p className="text-muted-foreground text-xs">2 val per match · 2 kr/st</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    className="border-input flex h-8 w-8 items-center justify-center rounded-md border disabled:opacity-40"
+                    disabled={halvgarderingar === 0}
+                    onClick={() => setHalvgarderingar((h) => Math.max(0, h - 1))}
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="w-5 text-center text-sm font-bold">{halvgarderingar}</span>
+                  <button
+                    className="border-input flex h-8 w-8 items-center justify-center rounded-md border disabled:opacity-40"
+                    disabled={halvgarderingar + helgarderingar >= 13}
+                    onClick={() => setHalvgarderingar((h) => Math.min(13 - helgarderingar, h + 1))}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Helgarderingar */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Helgarderingar</p>
+                  <p className="text-muted-foreground text-xs">Alla 3 val per match · 3 kr/st</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    className="border-input flex h-8 w-8 items-center justify-center rounded-md border disabled:opacity-40"
+                    disabled={helgarderingar === 0}
+                    onClick={() => setHelgarderingar((g) => Math.max(0, g - 1))}
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="w-5 text-center text-sm font-bold">{helgarderingar}</span>
+                  <button
+                    className="border-input flex h-8 w-8 items-center justify-center rounded-md border disabled:opacity-40"
+                    disabled={halvgarderingar + helgarderingar >= 13}
+                    onClick={() => setHelgarderingar((g) => Math.min(13 - halvgarderingar, g + 1))}
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Cost summary */}
+              {(() => {
+                const rows = Math.pow(2, halvgarderingar) * Math.pow(3, helgarderingar)
+                const perPerson = Math.ceil(rows / participants.length)
+                return (
+                  <div className="bg-muted/50 rounded-lg px-4 py-3 space-y-1.5">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Antal rader</span>
+                      <span className="font-medium">{rows.toLocaleString('sv-SE')}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Kostnad</span>
+                      <span className="font-medium">{rows.toLocaleString('sv-SE')} kr</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Per person</span>
+                      <span className="font-medium">{perPerson.toLocaleString('sv-SE')} kr</span>
+                    </div>
+                  </div>
+                )
+              })()}
+
+              <div className="flex gap-2 pt-1">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setShowGenerateModal(false)}
+                >
+                  Avbryt
+                </Button>
+                <Button className="flex-1" disabled={isPending} onClick={handleGenerate}>
+                  {isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
+                  {isPending ? 'Genererar...' : 'Generera'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   )
 }

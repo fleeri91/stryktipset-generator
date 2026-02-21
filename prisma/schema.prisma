@@ -15,6 +15,9 @@ model Session {
   closesAt    DateTime
   eventType   String        // "stryktipset" | "europatipset"
   drawNumber  Int
+  maxRows          Int?  // legacy budget cap; null = no limit
+  halvgarderingar  Int?  // number of 2-outcome matches in the system bong
+  helgarderingar   Int?  // number of 3-outcome matches in the system bong
 
   matches      SessionMatch[]
   participants Participant[]

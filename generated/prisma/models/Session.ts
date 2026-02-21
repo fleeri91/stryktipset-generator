@@ -28,10 +28,16 @@ export type AggregateSession = {
 
 export type SessionAvgAggregateOutputType = {
   drawNumber: number | null
+  maxRows: number | null
+  halvgarderingar: number | null
+  helgarderingar: number | null
 }
 
 export type SessionSumAggregateOutputType = {
   drawNumber: number | null
+  maxRows: number | null
+  halvgarderingar: number | null
+  helgarderingar: number | null
 }
 
 export type SessionMinAggregateOutputType = {
@@ -42,6 +48,9 @@ export type SessionMinAggregateOutputType = {
   closesAt: Date | null
   eventType: string | null
   drawNumber: number | null
+  maxRows: number | null
+  halvgarderingar: number | null
+  helgarderingar: number | null
 }
 
 export type SessionMaxAggregateOutputType = {
@@ -52,6 +61,9 @@ export type SessionMaxAggregateOutputType = {
   closesAt: Date | null
   eventType: string | null
   drawNumber: number | null
+  maxRows: number | null
+  halvgarderingar: number | null
+  helgarderingar: number | null
 }
 
 export type SessionCountAggregateOutputType = {
@@ -62,16 +74,25 @@ export type SessionCountAggregateOutputType = {
   closesAt: number
   eventType: number
   drawNumber: number
+  maxRows: number
+  halvgarderingar: number
+  helgarderingar: number
   _all: number
 }
 
 
 export type SessionAvgAggregateInputType = {
   drawNumber?: true
+  maxRows?: true
+  halvgarderingar?: true
+  helgarderingar?: true
 }
 
 export type SessionSumAggregateInputType = {
   drawNumber?: true
+  maxRows?: true
+  halvgarderingar?: true
+  helgarderingar?: true
 }
 
 export type SessionMinAggregateInputType = {
@@ -82,6 +103,9 @@ export type SessionMinAggregateInputType = {
   closesAt?: true
   eventType?: true
   drawNumber?: true
+  maxRows?: true
+  halvgarderingar?: true
+  helgarderingar?: true
 }
 
 export type SessionMaxAggregateInputType = {
@@ -92,6 +116,9 @@ export type SessionMaxAggregateInputType = {
   closesAt?: true
   eventType?: true
   drawNumber?: true
+  maxRows?: true
+  halvgarderingar?: true
+  helgarderingar?: true
 }
 
 export type SessionCountAggregateInputType = {
@@ -102,6 +129,9 @@ export type SessionCountAggregateInputType = {
   closesAt?: true
   eventType?: true
   drawNumber?: true
+  maxRows?: true
+  halvgarderingar?: true
+  helgarderingar?: true
   _all?: true
 }
 
@@ -199,6 +229,9 @@ export type SessionGroupByOutputType = {
   closesAt: Date
   eventType: string
   drawNumber: number
+  maxRows: number | null
+  halvgarderingar: number | null
+  helgarderingar: number | null
   _count: SessionCountAggregateOutputType | null
   _avg: SessionAvgAggregateOutputType | null
   _sum: SessionSumAggregateOutputType | null
@@ -232,6 +265,9 @@ export type SessionWhereInput = {
   closesAt?: Prisma.DateTimeFilter<"Session"> | Date | string
   eventType?: Prisma.StringFilter<"Session"> | string
   drawNumber?: Prisma.IntFilter<"Session"> | number
+  maxRows?: Prisma.IntNullableFilter<"Session"> | number | null
+  halvgarderingar?: Prisma.IntNullableFilter<"Session"> | number | null
+  helgarderingar?: Prisma.IntNullableFilter<"Session"> | number | null
   matches?: Prisma.SessionMatchListRelationFilter
   participants?: Prisma.ParticipantListRelationFilter
 }
@@ -244,6 +280,9 @@ export type SessionOrderByWithRelationInput = {
   closesAt?: Prisma.SortOrder
   eventType?: Prisma.SortOrder
   drawNumber?: Prisma.SortOrder
+  maxRows?: Prisma.SortOrderInput | Prisma.SortOrder
+  halvgarderingar?: Prisma.SortOrderInput | Prisma.SortOrder
+  helgarderingar?: Prisma.SortOrderInput | Prisma.SortOrder
   matches?: Prisma.SessionMatchOrderByRelationAggregateInput
   participants?: Prisma.ParticipantOrderByRelationAggregateInput
 }
@@ -259,6 +298,9 @@ export type SessionWhereUniqueInput = Prisma.AtLeast<{
   closesAt?: Prisma.DateTimeFilter<"Session"> | Date | string
   eventType?: Prisma.StringFilter<"Session"> | string
   drawNumber?: Prisma.IntFilter<"Session"> | number
+  maxRows?: Prisma.IntNullableFilter<"Session"> | number | null
+  halvgarderingar?: Prisma.IntNullableFilter<"Session"> | number | null
+  helgarderingar?: Prisma.IntNullableFilter<"Session"> | number | null
   matches?: Prisma.SessionMatchListRelationFilter
   participants?: Prisma.ParticipantListRelationFilter
 }, "id" | "code">
@@ -271,6 +313,9 @@ export type SessionOrderByWithAggregationInput = {
   closesAt?: Prisma.SortOrder
   eventType?: Prisma.SortOrder
   drawNumber?: Prisma.SortOrder
+  maxRows?: Prisma.SortOrderInput | Prisma.SortOrder
+  halvgarderingar?: Prisma.SortOrderInput | Prisma.SortOrder
+  helgarderingar?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.SessionCountOrderByAggregateInput
   _avg?: Prisma.SessionAvgOrderByAggregateInput
   _max?: Prisma.SessionMaxOrderByAggregateInput
@@ -289,6 +334,9 @@ export type SessionScalarWhereWithAggregatesInput = {
   closesAt?: Prisma.DateTimeWithAggregatesFilter<"Session"> | Date | string
   eventType?: Prisma.StringWithAggregatesFilter<"Session"> | string
   drawNumber?: Prisma.IntWithAggregatesFilter<"Session"> | number
+  maxRows?: Prisma.IntNullableWithAggregatesFilter<"Session"> | number | null
+  halvgarderingar?: Prisma.IntNullableWithAggregatesFilter<"Session"> | number | null
+  helgarderingar?: Prisma.IntNullableWithAggregatesFilter<"Session"> | number | null
 }
 
 export type SessionCreateInput = {
@@ -299,6 +347,9 @@ export type SessionCreateInput = {
   closesAt: Date | string
   eventType: string
   drawNumber: number
+  maxRows?: number | null
+  halvgarderingar?: number | null
+  helgarderingar?: number | null
   matches?: Prisma.SessionMatchCreateNestedManyWithoutSessionInput
   participants?: Prisma.ParticipantCreateNestedManyWithoutSessionInput
 }
@@ -311,6 +362,9 @@ export type SessionUncheckedCreateInput = {
   closesAt: Date | string
   eventType: string
   drawNumber: number
+  maxRows?: number | null
+  halvgarderingar?: number | null
+  helgarderingar?: number | null
   matches?: Prisma.SessionMatchUncheckedCreateNestedManyWithoutSessionInput
   participants?: Prisma.ParticipantUncheckedCreateNestedManyWithoutSessionInput
 }
@@ -323,6 +377,9 @@ export type SessionUpdateInput = {
   closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventType?: Prisma.StringFieldUpdateOperationsInput | string
   drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  maxRows?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  halvgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  helgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   matches?: Prisma.SessionMatchUpdateManyWithoutSessionNestedInput
   participants?: Prisma.ParticipantUpdateManyWithoutSessionNestedInput
 }
@@ -335,6 +392,9 @@ export type SessionUncheckedUpdateInput = {
   closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventType?: Prisma.StringFieldUpdateOperationsInput | string
   drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  maxRows?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  halvgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  helgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   matches?: Prisma.SessionMatchUncheckedUpdateManyWithoutSessionNestedInput
   participants?: Prisma.ParticipantUncheckedUpdateManyWithoutSessionNestedInput
 }
@@ -347,6 +407,9 @@ export type SessionCreateManyInput = {
   closesAt: Date | string
   eventType: string
   drawNumber: number
+  maxRows?: number | null
+  halvgarderingar?: number | null
+  helgarderingar?: number | null
 }
 
 export type SessionUpdateManyMutationInput = {
@@ -357,6 +420,9 @@ export type SessionUpdateManyMutationInput = {
   closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventType?: Prisma.StringFieldUpdateOperationsInput | string
   drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  maxRows?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  halvgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  helgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type SessionUncheckedUpdateManyInput = {
@@ -367,6 +433,9 @@ export type SessionUncheckedUpdateManyInput = {
   closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventType?: Prisma.StringFieldUpdateOperationsInput | string
   drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  maxRows?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  halvgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  helgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
 }
 
 export type SessionCountOrderByAggregateInput = {
@@ -377,10 +446,16 @@ export type SessionCountOrderByAggregateInput = {
   closesAt?: Prisma.SortOrder
   eventType?: Prisma.SortOrder
   drawNumber?: Prisma.SortOrder
+  maxRows?: Prisma.SortOrder
+  halvgarderingar?: Prisma.SortOrder
+  helgarderingar?: Prisma.SortOrder
 }
 
 export type SessionAvgOrderByAggregateInput = {
   drawNumber?: Prisma.SortOrder
+  maxRows?: Prisma.SortOrder
+  halvgarderingar?: Prisma.SortOrder
+  helgarderingar?: Prisma.SortOrder
 }
 
 export type SessionMaxOrderByAggregateInput = {
@@ -391,6 +466,9 @@ export type SessionMaxOrderByAggregateInput = {
   closesAt?: Prisma.SortOrder
   eventType?: Prisma.SortOrder
   drawNumber?: Prisma.SortOrder
+  maxRows?: Prisma.SortOrder
+  halvgarderingar?: Prisma.SortOrder
+  helgarderingar?: Prisma.SortOrder
 }
 
 export type SessionMinOrderByAggregateInput = {
@@ -401,10 +479,16 @@ export type SessionMinOrderByAggregateInput = {
   closesAt?: Prisma.SortOrder
   eventType?: Prisma.SortOrder
   drawNumber?: Prisma.SortOrder
+  maxRows?: Prisma.SortOrder
+  halvgarderingar?: Prisma.SortOrder
+  helgarderingar?: Prisma.SortOrder
 }
 
 export type SessionSumOrderByAggregateInput = {
   drawNumber?: Prisma.SortOrder
+  maxRows?: Prisma.SortOrder
+  halvgarderingar?: Prisma.SortOrder
+  helgarderingar?: Prisma.SortOrder
 }
 
 export type SessionScalarRelationFilter = {
@@ -426,6 +510,14 @@ export type DateTimeFieldUpdateOperationsInput = {
 
 export type IntFieldUpdateOperationsInput = {
   set?: number
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
   increment?: number
   decrement?: number
   multiply?: number
@@ -468,6 +560,9 @@ export type SessionCreateWithoutMatchesInput = {
   closesAt: Date | string
   eventType: string
   drawNumber: number
+  maxRows?: number | null
+  halvgarderingar?: number | null
+  helgarderingar?: number | null
   participants?: Prisma.ParticipantCreateNestedManyWithoutSessionInput
 }
 
@@ -479,6 +574,9 @@ export type SessionUncheckedCreateWithoutMatchesInput = {
   closesAt: Date | string
   eventType: string
   drawNumber: number
+  maxRows?: number | null
+  halvgarderingar?: number | null
+  helgarderingar?: number | null
   participants?: Prisma.ParticipantUncheckedCreateNestedManyWithoutSessionInput
 }
 
@@ -506,6 +604,9 @@ export type SessionUpdateWithoutMatchesInput = {
   closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventType?: Prisma.StringFieldUpdateOperationsInput | string
   drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  maxRows?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  halvgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  helgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   participants?: Prisma.ParticipantUpdateManyWithoutSessionNestedInput
 }
 
@@ -517,6 +618,9 @@ export type SessionUncheckedUpdateWithoutMatchesInput = {
   closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventType?: Prisma.StringFieldUpdateOperationsInput | string
   drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  maxRows?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  halvgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  helgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   participants?: Prisma.ParticipantUncheckedUpdateManyWithoutSessionNestedInput
 }
 
@@ -528,6 +632,9 @@ export type SessionCreateWithoutParticipantsInput = {
   closesAt: Date | string
   eventType: string
   drawNumber: number
+  maxRows?: number | null
+  halvgarderingar?: number | null
+  helgarderingar?: number | null
   matches?: Prisma.SessionMatchCreateNestedManyWithoutSessionInput
 }
 
@@ -539,6 +646,9 @@ export type SessionUncheckedCreateWithoutParticipantsInput = {
   closesAt: Date | string
   eventType: string
   drawNumber: number
+  maxRows?: number | null
+  halvgarderingar?: number | null
+  helgarderingar?: number | null
   matches?: Prisma.SessionMatchUncheckedCreateNestedManyWithoutSessionInput
 }
 
@@ -566,6 +676,9 @@ export type SessionUpdateWithoutParticipantsInput = {
   closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventType?: Prisma.StringFieldUpdateOperationsInput | string
   drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  maxRows?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  halvgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  helgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   matches?: Prisma.SessionMatchUpdateManyWithoutSessionNestedInput
 }
 
@@ -577,6 +690,9 @@ export type SessionUncheckedUpdateWithoutParticipantsInput = {
   closesAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   eventType?: Prisma.StringFieldUpdateOperationsInput | string
   drawNumber?: Prisma.IntFieldUpdateOperationsInput | number
+  maxRows?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  halvgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  helgarderingar?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   matches?: Prisma.SessionMatchUncheckedUpdateManyWithoutSessionNestedInput
 }
 
@@ -628,6 +744,9 @@ export type SessionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   closesAt?: boolean
   eventType?: boolean
   drawNumber?: boolean
+  maxRows?: boolean
+  halvgarderingar?: boolean
+  helgarderingar?: boolean
   matches?: boolean | Prisma.Session$matchesArgs<ExtArgs>
   participants?: boolean | Prisma.Session$participantsArgs<ExtArgs>
   _count?: boolean | Prisma.SessionCountOutputTypeDefaultArgs<ExtArgs>
@@ -641,6 +760,9 @@ export type SessionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   closesAt?: boolean
   eventType?: boolean
   drawNumber?: boolean
+  maxRows?: boolean
+  halvgarderingar?: boolean
+  helgarderingar?: boolean
 }, ExtArgs["result"]["session"]>
 
 export type SessionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -651,6 +773,9 @@ export type SessionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   closesAt?: boolean
   eventType?: boolean
   drawNumber?: boolean
+  maxRows?: boolean
+  halvgarderingar?: boolean
+  helgarderingar?: boolean
 }, ExtArgs["result"]["session"]>
 
 export type SessionSelectScalar = {
@@ -661,9 +786,12 @@ export type SessionSelectScalar = {
   closesAt?: boolean
   eventType?: boolean
   drawNumber?: boolean
+  maxRows?: boolean
+  halvgarderingar?: boolean
+  helgarderingar?: boolean
 }
 
-export type SessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "status" | "createdAt" | "closesAt" | "eventType" | "drawNumber", ExtArgs["result"]["session"]>
+export type SessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "code" | "status" | "createdAt" | "closesAt" | "eventType" | "drawNumber" | "maxRows" | "halvgarderingar" | "helgarderingar", ExtArgs["result"]["session"]>
 export type SessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   matches?: boolean | Prisma.Session$matchesArgs<ExtArgs>
   participants?: boolean | Prisma.Session$participantsArgs<ExtArgs>
@@ -686,6 +814,9 @@ export type $SessionPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     closesAt: Date
     eventType: string
     drawNumber: number
+    maxRows: number | null
+    halvgarderingar: number | null
+    helgarderingar: number | null
   }, ExtArgs["result"]["session"]>
   composites: {}
 }
@@ -1118,6 +1249,9 @@ export interface SessionFieldRefs {
   readonly closesAt: Prisma.FieldRef<"Session", 'DateTime'>
   readonly eventType: Prisma.FieldRef<"Session", 'String'>
   readonly drawNumber: Prisma.FieldRef<"Session", 'Int'>
+  readonly maxRows: Prisma.FieldRef<"Session", 'Int'>
+  readonly halvgarderingar: Prisma.FieldRef<"Session", 'Int'>
+  readonly helgarderingar: Prisma.FieldRef<"Session", 'Int'>
 }
     
 
