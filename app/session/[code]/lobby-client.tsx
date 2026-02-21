@@ -11,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import Link from 'next/link'
 
 interface Participant {
   id: string
@@ -39,6 +38,14 @@ export function LobbyClient({
   const [isPending, startTransition] = useTransition()
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
+  const [confirmLeave, setConfirmLeave] = useState(false)
+  const [isLeavePending, setLeavePending] = useState(false)
+  const [confirmCancel, setConfirmCancel] = useState(false)
+
+  const currentParticipant = participants.find(
+    (p) => p.id === currentParticipantId
+  )
+  const isCurrentParticipantHost = currentParticipant?.isHost ?? false
 
   useEffect(() => {
     if (status === 'GENERATED') {
@@ -83,6 +90,42 @@ export function LobbyClient({
     })
   }
 
+  function handleLeaveClick() {
+    if (!confirmLeave) {
+      setConfirmLeave(true)
+      setTimeout(() => setConfirmLeave(false), 3000)
+      return
+    }
+    setLeavePending(true)
+    fetch(`/api/sessions/${sessionCode}/leave`, { method: 'POST' })
+      .then((res) => {
+        if (!res.ok) throw new Error()
+        router.push('/')
+      })
+      .catch(() => {
+        setError('Kunde inte lämna sessionen. Försök igen.')
+        setLeavePending(false)
+        setConfirmLeave(false)
+      })
+  }
+
+  function handleCancelClick() {
+    if (!confirmCancel) {
+      setConfirmCancel(true)
+      setTimeout(() => setConfirmCancel(false), 3000)
+      return
+    }
+    fetch(`/api/sessions/${sessionCode}/cancel`, { method: 'POST' })
+      .then((res) => {
+        if (!res.ok) throw new Error()
+        router.push('/')
+      })
+      .catch(() => {
+        setError('Kunde inte avbryta sessionen. Försök igen.')
+        setConfirmCancel(false)
+      })
+  }
+
   const allSubmitted = participants.every((p) => p.submitted)
 
   return (
@@ -98,11 +141,14 @@ export function LobbyClient({
               Stryktipset
             </h1>
           </div>
-          <Link href="/">
-            <Button variant="ghost" size="sm">
-              Lämna
-            </Button>
-          </Link>
+          <Button
+            variant={confirmLeave ? 'destructive' : 'ghost'}
+            size="sm"
+            disabled={isLeavePending}
+            onClick={handleLeaveClick}
+          >
+            {confirmLeave ? 'Säker?' : 'Lämna'}
+          </Button>
         </div>
 
         {/* Session code */}
@@ -231,6 +277,20 @@ export function LobbyClient({
         ) : (
           <div className="text-muted-foreground border-border rounded-lg border border-dashed p-4 text-center text-xs">
             Väntar på att alla skickar in sina bongar...
+          </div>
+        )}
+
+        {/* Cancel session — host only, BETTING status only */}
+        {status === 'BETTING' && isCurrentParticipantHost && (
+          <div className="flex justify-center pt-2">
+            <button
+              className="text-muted-foreground/50 hover:text-destructive text-xs transition-colors"
+              onClick={handleCancelClick}
+            >
+              {confirmCancel
+                ? 'Avbryt session? Tryck igen'
+                : 'Avbryt session'}
+            </button>
           </div>
         )}
       </div>
