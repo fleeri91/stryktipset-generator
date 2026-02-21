@@ -8,7 +8,7 @@ export async function GET() {
   } catch (error) {
     console.error('Failed to fetch draws:', error)
     return NextResponse.json(
-      { error: 'Kunde inte hämta omgångar' },
+      { error: 'Failed to fetch draws' },
       { status: 500 }
     )
   }

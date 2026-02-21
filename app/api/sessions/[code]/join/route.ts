@@ -13,7 +13,7 @@ export async function POST(
 
     const result = joinSessionSchema.safeParse(body)
     if (!result.success) {
-      return NextResponse.json({ error: 'Ogiltigt namn' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid name' }, { status: 400 })
     }
 
     const { name } = result.data
@@ -25,21 +25,21 @@ export async function POST(
 
     if (!session) {
       return NextResponse.json(
-        { error: 'Sessionen hittades inte' },
+        { error: 'Session not found' },
         { status: 404 }
       )
     }
 
     if (session.status === 'GENERATED') {
       return NextResponse.json(
-        { error: 'Sessionen är redan låst' },
+        { error: 'Session is locked' },
         { status: 403 }
       )
     }
 
     if (session.closesAt < new Date()) {
       return NextResponse.json(
-        { error: 'Sessionen har gått ut' },
+        { error: 'Session has expired' },
         { status: 410 }
       )
     }
@@ -49,7 +49,7 @@ export async function POST(
     )
     if (nameTaken) {
       return NextResponse.json(
-        { error: 'Namnet är redan taget i denna session' },
+        { error: 'Name is already taken in this session' },
         { status: 409 }
       )
     }
@@ -75,7 +75,7 @@ export async function POST(
   } catch (error) {
     console.error('Failed to join session:', error)
     return NextResponse.json(
-      { error: 'Kunde inte gå med i sessionen' },
+      { error: 'Failed to join session' },
       { status: 500 }
     )
   }

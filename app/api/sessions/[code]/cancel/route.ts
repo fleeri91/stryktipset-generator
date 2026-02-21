@@ -15,7 +15,7 @@ export async function POST(
     const participant = result
 
     if (!participant.isHost) {
-      return NextResponse.json({ error: 'Ej behörig' }, { status: 403 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
     // Delete the session — cascade removes all participants, matches, and selections
@@ -28,7 +28,7 @@ export async function POST(
   } catch (error) {
     console.error('Failed to cancel session:', error)
     return NextResponse.json(
-      { error: 'Kunde inte avbryta sessionen' },
+      { error: 'Failed to cancel session' },
       { status: 500 }
     )
   }

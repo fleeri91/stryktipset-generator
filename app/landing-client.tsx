@@ -52,14 +52,14 @@ export function LandingClient() {
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
-          setError(data.error || 'Något gick fel. Försök igen.')
+          setError(data.error || 'Something went wrong. Please try again.')
           return
         }
 
         const data = await res.json()
         router.push(`/session/${data.sessionCode}`)
       } catch {
-        setError('Kunde inte ansluta. Försök igen.')
+        setError('Failed to connect. Please try again.')
       }
     })
   }

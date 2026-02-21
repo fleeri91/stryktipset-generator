@@ -125,14 +125,14 @@ export function BetBuilderClient({
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
-          setError(data.error || 'Något gick fel.')
+          setError(data.error || 'Something went wrong.')
           return
         }
 
         router.push(`/session/${sessionCode}`)
         router.refresh()
       } catch {
-        setError('Kunde inte spara bongen. Försök igen.')
+        setError('Failed to save picks. Please try again.')
       }
     })
   }

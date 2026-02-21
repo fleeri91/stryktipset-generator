@@ -14,7 +14,7 @@ export async function POST(
     const participant = result
 
     if (!participant.isHost) {
-      return NextResponse.json({ error: 'Ej behörig' }, { status: 403 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
     const session = participant.session
@@ -22,7 +22,7 @@ export async function POST(
     const allSubmitted = session.participants.every((p) => p.submitted)
     if (!allSubmitted) {
       return NextResponse.json(
-        { error: 'Alla deltagare har inte skickat in sina bongar' },
+        { error: 'Not all participants have submitted their picks' },
         { status: 400 }
       )
     }
@@ -37,6 +37,13 @@ export async function POST(
         ? Math.round(body.helgarderingar)
         : 0
 
+    if (halvgarderingar + helgarderingar > 13) {
+      return NextResponse.json(
+        { error: 'Total garderingar cannot exceed 13' },
+        { status: 400 }
+      )
+    }
+
     await prisma.session.update({
       where: { id: session.id },
       data: { status: 'GENERATED', halvgarderingar, helgarderingar },
@@ -46,7 +53,7 @@ export async function POST(
   } catch (error) {
     console.error('Failed to generate bong:', error)
     return NextResponse.json(
-      { error: 'Kunde inte generera bongen' },
+      { error: 'Failed to generate combined bet' },
       { status: 500 }
     )
   }

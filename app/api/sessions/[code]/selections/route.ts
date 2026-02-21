@@ -14,9 +14,16 @@ export async function PUT(
     if (result instanceof NextResponse) return result
     const participant = result
 
+    if (participant.session.status === 'GENERATED') {
+      return NextResponse.json(
+        { error: 'Session is already locked' },
+        { status: 403 }
+      )
+    }
+
     if (participant.session.closesAt < new Date()) {
       return NextResponse.json(
-        { error: 'Sessionen har gått ut' },
+        { error: 'Session has expired' },
         { status: 410 }
       )
     }
@@ -25,7 +32,7 @@ export async function PUT(
     const validation = submitSelectionsSchema.safeParse(body)
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Ogiltig data', details: validation.error.flatten().fieldErrors },
+        { error: 'Invalid data', details: validation.error.flatten().fieldErrors },
         { status: 400 }
       )
     }
@@ -60,7 +67,7 @@ export async function PUT(
   } catch (error) {
     console.error('Failed to submit selections:', error)
     return NextResponse.json(
-      { error: 'Kunde inte spara bongen' },
+      { error: 'Failed to save selections' },
       { status: 500 }
     )
   }

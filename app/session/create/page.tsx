@@ -58,7 +58,7 @@ export default function CreateSessionPage() {
       const data: DrawInfo[] = await res.json()
       setDraws(data)
     } catch {
-      setError('Kunde inte hämta omgångar. Försök igen.')
+      setError('Failed to fetch draws. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -93,7 +93,7 @@ export default function CreateSessionPage() {
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
-          setError(data.error || 'Något gick fel. Försök igen.')
+          setError(data.error || 'Something went wrong. Please try again.')
           return
         }
 
@@ -101,7 +101,7 @@ export default function CreateSessionPage() {
         sessionStorage.removeItem('hostName')
         router.push(`/session/${data.code}`)
       } catch {
-        setError('Kunde inte skapa sessionen. Försök igen.')
+        setError('Failed to create session. Please try again.')
       }
     })
   }

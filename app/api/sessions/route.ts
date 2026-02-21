@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const result = createSessionSchema.safeParse(body)
     if (!result.success) {
       return NextResponse.json(
-        { error: 'Ogiltig data', details: result.error.flatten().fieldErrors },
+        { error: 'Invalid data', details: result.error.flatten().fieldErrors },
         { status: 400 }
       )
     }
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error('Failed to create session:', error)
     return NextResponse.json(
-      { error: 'Kunde inte skapa sessionen' },
+      { error: 'Failed to create session' },
       { status: 500 }
     )
   }

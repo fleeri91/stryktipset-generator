@@ -51,7 +51,7 @@ export async function POST(
   } catch (error) {
     console.error('Failed to leave session:', error)
     return NextResponse.json(
-      { error: 'Kunde inte lämna sessionen' },
+      { error: 'Failed to leave session' },
       { status: 500 }
     )
   }

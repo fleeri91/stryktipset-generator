@@ -87,14 +87,14 @@ export function LobbyClient({
 
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
-          setError(data.error || 'Något gick fel.')
+          setError(data.error || 'Something went wrong.')
           return
         }
 
         router.push(`/session/${sessionCode}/result`)
         router.refresh()
       } catch {
-        setError('Kunde inte generera bongen. Försök igen.')
+        setError('Failed to generate. Please try again.')
       }
     })
   }
@@ -112,7 +112,7 @@ export function LobbyClient({
         router.push('/')
       })
       .catch(() => {
-        setError('Kunde inte lämna sessionen. Försök igen.')
+        setError('Failed to leave session. Please try again.')
         setLeavePending(false)
         setConfirmLeave(false)
       })
@@ -130,7 +130,7 @@ export function LobbyClient({
         router.push('/')
       })
       .catch(() => {
-        setError('Kunde inte avbryta sessionen. Försök igen.')
+        setError('Failed to cancel session. Please try again.')
         setConfirmCancel(false)
       })
   }
