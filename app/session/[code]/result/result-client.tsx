@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Trophy } from 'lucide-react'
+import { ArrowLeft, Trophy, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -58,11 +59,45 @@ export function ResultClient({
   matches,
   combined,
   contributors,
+  participants,
   participantCount,
 }: ResultClientProps) {
   const router = useRouter()
+  const [copied, setCopied] = useState(false)
 
   const rows = calculateRows(combined)
+
+  async function copyResult() {
+    const participantNames = participants.map((p) => p.name).join(', ')
+
+    const matchLines = matches
+      .map((match) => {
+        const picks = combined.find((c) => c.matchIndex === match.matchIndex)
+        const pickLabels = picks
+          ? CHOICES.filter(({ key }) => picks[key])
+              .map(({ label }) => label)
+              .join(' ')
+          : ''
+        const description = `${match.matchIndex.toString().padStart(2, ' ')}. ${match.homeTeam} – ${match.awayTeam}`
+        return `${description.padEnd(42)}${pickLabels}`
+      })
+      .join('\n')
+
+    const text = [
+      `Kombinerad Bong – Session ${sessionCode}`,
+      `Deltagare: ${participantNames}`,
+      '',
+      matchLines,
+      '',
+      `Rader: ${rows.toLocaleString()}`,
+    ].join('\n')
+
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {}
+  }
 
   return (
     <div className="flex min-h-dvh flex-col items-center px-6 py-10">
@@ -76,6 +111,19 @@ export function ResultClient({
             >
               <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
               Tillbaka
+            </Button>
+            <Button variant="ghost" size="sm" onClick={copyResult}>
+              {copied ? (
+                <>
+                  <Check className="mr-1.5 h-3.5 w-3.5 text-primary" />
+                  <span className="text-primary">Kopierad!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="mr-1.5 h-3.5 w-3.5" />
+                  Kopiera
+                </>
+              )}
             </Button>
           </div>
         }
