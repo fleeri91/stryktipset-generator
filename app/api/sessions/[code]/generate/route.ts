@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
+import { getParticipantWithSessionParticipants } from '@/lib/auth'
 
 export async function POST(
   _request: Request,
@@ -8,19 +8,12 @@ export async function POST(
 ) {
   try {
     const { code } = await params
-    const cookieStore = await cookies()
-    const token = cookieStore.get('participant-token')?.value
 
-    if (!token) {
-      return NextResponse.json({ error: 'Ej autentiserad' }, { status: 401 })
-    }
+    const result = await getParticipantWithSessionParticipants(code)
+    if (result instanceof NextResponse) return result
+    const participant = result
 
-    const participant = await prisma.participant.findUnique({
-      where: { token },
-      include: { session: { include: { participants: true } } },
-    })
-
-    if (!participant || participant.session.code !== code.toUpperCase()) {
+    if (!participant.isHost) {
       return NextResponse.json({ error: 'Ej behörig' }, { status: 403 })
     }
 

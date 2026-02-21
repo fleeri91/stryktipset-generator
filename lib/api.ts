@@ -1,7 +1,8 @@
 import { EventType, type EventRoot, type Event } from '@/types/SvenskaSpel'
+import { env } from '@/lib/env'
 
-const BASE_URL = process.env.SVENSKA_SPEL_BASE_URL!
-const SECRET = process.env.SVENSKA_SPEL_SECRET!
+const BASE_URL = env.SVENSKA_SPEL_BASE_URL
+const SECRET = env.SVENSKA_SPEL_SECRET
 
 export interface MatchFromApi {
   eventNumber: number

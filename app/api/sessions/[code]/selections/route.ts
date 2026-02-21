@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 import { prisma } from '@/lib/prisma'
 import { submitSelectionsSchema } from '@/lib/validations'
+import { getParticipant } from '@/lib/auth'
 
 export async function PUT(
   request: Request,
@@ -9,21 +9,10 @@ export async function PUT(
 ) {
   try {
     const { code } = await params
-    const cookieStore = await cookies()
-    const token = cookieStore.get('participant-token')?.value
 
-    if (!token) {
-      return NextResponse.json({ error: 'Ej autentiserad' }, { status: 401 })
-    }
-
-    const participant = await prisma.participant.findUnique({
-      where: { token },
-      include: { session: true },
-    })
-
-    if (!participant || participant.session.code !== code.toUpperCase()) {
-      return NextResponse.json({ error: 'Ej behörig' }, { status: 403 })
-    }
+    const result = await getParticipant(code)
+    if (result instanceof NextResponse) return result
+    const participant = result
 
     if (participant.session.status === 'GENERATED') {
       return NextResponse.json(
@@ -32,16 +21,23 @@ export async function PUT(
       )
     }
 
-    const body = await request.json()
-    const result = submitSelectionsSchema.safeParse(body)
-    if (!result.success) {
+    if (participant.session.closesAt < new Date()) {
       return NextResponse.json(
-        { error: 'Ogiltig data', details: result.error.flatten().fieldErrors },
+        { error: 'Sessionen har gått ut' },
+        { status: 410 }
+      )
+    }
+
+    const body = await request.json()
+    const validation = submitSelectionsSchema.safeParse(body)
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: 'Ogiltig data', details: validation.error.flatten().fieldErrors },
         { status: 400 }
       )
     }
 
-    const { selections } = result.data
+    const { selections } = validation.data
 
     // Upsert all selections and mark as submitted in a transaction
     await prisma.$transaction([
