@@ -1,6 +1,8 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+import { fetchMatchInfo } from '@/lib/api'
+import { toSessionSummary } from '@/lib/session-summary'
 import { BetBuilderClient } from './bet-builder-client'
 
 interface Props {
@@ -21,6 +23,10 @@ export default async function BetPage({ params }: Props) {
       session: {
         include: {
           matches: { orderBy: { matchIndex: 'asc' } },
+          participants: {
+            select: { id: true, name: true, isHost: true, submitted: true },
+            orderBy: { id: 'asc' },
+          },
         },
       },
     },
@@ -30,12 +36,22 @@ export default async function BetPage({ params }: Props) {
     redirect('/')
   }
 
+  // Picks are locked once the bong is generated
+  if (participant.session.status === 'GENERATED') {
+    redirect(`/session/${code}`)
+  }
+
+  const matchInfo = await fetchMatchInfo(
+    participant.session.eventType,
+    participant.session.drawNumber
+  )
+
   const matches = participant.session.matches.map((m) => ({
     matchIndex: m.matchIndex,
     homeTeam: m.homeTeam,
     awayTeam: m.awayTeam,
-    league: m.league,
-    kickoff: m.kickoff.toISOString(),
+    streck: matchInfo?.[m.matchIndex]?.streck ?? null,
+    odds: matchInfo?.[m.matchIndex]?.odds ?? null,
   }))
 
   const existing = participant.selections.reduce(
@@ -50,19 +66,20 @@ export default async function BetPage({ params }: Props) {
     },
     {} as Record<
       number,
-      { home: boolean; draw: boolean; away: boolean; firstChoice: string | null }
+      {
+        home: boolean
+        draw: boolean
+        away: boolean
+        firstChoice: string | null
+      }
     >
   )
 
   return (
     <BetBuilderClient
-      sessionCode={code}
+      summary={toSessionSummary(participant.session, participant)}
       matches={matches}
       existingSelections={existing}
-      participantName={participant.name}
-      isEditing={participant.submitted}
-      maxHalvgarderingar={participant.session.halvgarderingar ?? 0}
-      maxHelgarderingar={participant.session.helgarderingar ?? 0}
     />
   )
 }

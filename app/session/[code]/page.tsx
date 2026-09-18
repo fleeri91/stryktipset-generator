@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
+import { toSessionSummary } from '@/lib/session-summary'
 import { LobbyClient } from './lobby-client'
 
 interface Props {
@@ -21,7 +22,7 @@ export default async function SessionPage({ params }: Props) {
         include: {
           participants: {
             select: { id: true, name: true, isHost: true, submitted: true },
-            orderBy: { isHost: 'desc' },
+            orderBy: { id: 'asc' },
           },
         },
       },
@@ -32,18 +33,7 @@ export default async function SessionPage({ params }: Props) {
     redirect('/')
   }
 
-  const session = participant.session
-  const halvgarderingar = session.halvgarderingar ?? 0
-  const helgarderingar = session.helgarderingar ?? 0
-
   return (
-    <LobbyClient
-      sessionCode={session.code}
-      status={session.status}
-      participants={session.participants}
-      currentParticipantId={participant.id}
-      halvgarderingar={halvgarderingar}
-      helgarderingar={helgarderingar}
-    />
+    <LobbyClient summary={toSessionSummary(participant.session, participant)} />
   )
 }

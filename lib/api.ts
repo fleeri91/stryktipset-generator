@@ -84,3 +84,38 @@ function getParticipantName(event: Event, type: string): string {
     'Okänd'
   )
 }
+
+export type OutcomeTriple = [home: string, draw: string, away: string]
+
+export interface MatchInfo {
+  /** Betting distribution in percent per outcome, e.g. ["71", "18", "11"] */
+  streck: OutcomeTriple
+  /** Odds per outcome as formatted by Svenska Spel, e.g. ["1,63", "4,20", "5,80"] */
+  odds: OutcomeTriple
+}
+
+/**
+ * Current odds and betting distribution for a session's draw, keyed by
+ * matchIndex (1-based, same order the session's matches were created in).
+ * Returns null when the draw is no longer the active one or the API fails.
+ */
+export async function fetchMatchInfo(
+  eventType: string,
+  drawNumber: number
+): Promise<Record<number, MatchInfo> | null> {
+  try {
+    const draw = await fetchDraw(eventType as EventType)
+    if (draw.drawNumber !== drawNumber) return null
+
+    const info: Record<number, MatchInfo> = {}
+    draw.matches.forEach((m, i) => {
+      info[i + 1] = {
+        streck: [m.distribution.home, m.distribution.draw, m.distribution.away],
+        odds: [m.odds.home, m.odds.draw, m.odds.away],
+      }
+    })
+    return info
+  } catch {
+    return null
+  }
+}

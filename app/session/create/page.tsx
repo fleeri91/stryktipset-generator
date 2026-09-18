@@ -1,24 +1,27 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  ArrowLeft,
-  Loader2,
-  RefreshCw,
-  Calendar,
-  Trophy,
-  Minus,
-  Plus,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
+  BigButton,
+  ErrorText,
+  FieldLabel,
+  Kicker,
+  ScreenFooter,
+  ScreenHeader,
+  StepButton,
+  TextInput,
+} from '@/components/bongen/ui'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+  ROW_PRICE_KR,
+  drawLabel,
+  formatCloseTime,
+  formatKr,
+  formatNumber,
+  productName,
+  rowsFor,
+} from '@/lib/session-labels'
+import { cn } from '@/lib/utils'
 
 interface MatchFromApi {
   eventNumber: number
@@ -38,329 +41,286 @@ interface DrawInfo {
   matches: MatchFromApi[]
 }
 
+const PRODUCTS = ['stryktipset', 'europatipset'] as const
+
+/** The API sometimes returns a formatted string ("ca 5 milj kr"), sometimes a bare number. */
+function formatJackpot(jackpot: string | null): string {
+  if (!jackpot) return '–'
+  return /kr/i.test(jackpot) ? jackpot : `${jackpot} kr`
+}
+
 export default function CreateSessionPage() {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
-  const [hostName, setHostName] = useState<string | null>(null)
-  const [draws, setDraws] = useState<DrawInfo[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  const [selectedDraw, setSelectedDraw] = useState<DrawInfo | null>(null)
-  const [halvgarderingar, setHalvgarderingar] = useState(0)
-  const [helgarderingar, setHelgarderingar] = useState(0)
+  const [draws, setDraws] = useState<DrawInfo[] | null>(null)
+  const [loadError, setLoadError] = useState(false)
+  const [eventType, setEventType] = useState<string>(PRODUCTS[0])
+  const [hostName, setHostName] = useState('')
+  const [halv, setHalv] = useState(3)
+  const [hel, setHel] = useState(1)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const stored = sessionStorage.getItem('hostName')
-    if (!stored) {
-      router.replace('/')
-      return
+    let cancelled = false
+    fetch('/api/draws')
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then((data: DrawInfo[]) => {
+        if (cancelled) return
+        setDraws(data)
+        if (!data.some((d) => d.eventType === PRODUCTS[0]) && data[0]) {
+          setEventType(data[0].eventType)
+        }
+      })
+      .catch(() => !cancelled && setLoadError(true))
+    return () => {
+      cancelled = true
     }
-    setHostName(stored)
-    fetchDraws()
-  }, [router])
+  }, [])
 
-  async function fetchDraws() {
-    setLoading(true)
-    setError('')
-    try {
-      const res = await fetch('/api/draws')
-      if (!res.ok) throw new Error()
-      const data: DrawInfo[] = await res.json()
-      setDraws(data)
-    } catch {
-      setError('Failed to fetch draws. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+  const draw = draws?.find((d) => d.eventType === eventType) ?? null
+  const matchCount = draw?.matches.length ?? 13
+  const rows = rowsFor(halv, hel)
+  const canCreate = !!draw && hostName.trim().length > 0 && !isPending
+
+  function pickProduct(next: string) {
+    if (next === eventType) return
+    setEventType(next)
+    setError(null)
   }
 
-  function handleSelectDraw(draw: DrawInfo) {
-    setError('')
-    setHalvgarderingar(0)
-    setHelgarderingar(0)
-    setSelectedDraw(draw)
-  }
-
-  function handleCreateSession() {
-    if (!hostName || !selectedDraw) return
-
-    const draw = selectedDraw
-    setError('')
+  function handleCreate() {
+    if (!draw || !canCreate) return
+    setError(null)
     startTransition(async () => {
       try {
-        const matches = draw.matches.map(
-          ({ homeTeam, awayTeam, league, kickoff }) => ({
-            homeTeam,
-            awayTeam,
-            league,
-            kickoff,
-          })
-        )
-
         const res = await fetch('/api/sessions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            hostName,
+            hostName: hostName.trim(),
             eventType: draw.eventType,
             drawNumber: draw.drawNumber,
             closeTime: draw.closeTime,
-            matches,
-            halvgarderingar,
-            helgarderingar,
+            matches: draw.matches.map(
+              ({ homeTeam, awayTeam, league, kickoff }) => ({
+                homeTeam,
+                awayTeam,
+                league,
+                kickoff,
+              })
+            ),
+            halvgarderingar: halv,
+            helgarderingar: hel,
           }),
         })
-
         if (!res.ok) {
-          const data = await res.json().catch(() => ({}))
-          setError(data.error || 'Something went wrong. Please try again.')
+          setError('Kunde inte skapa omgången. Försök igen.')
           return
         }
-
         const data = await res.json()
-        sessionStorage.removeItem('hostName')
         router.push(`/session/${data.code}`)
       } catch {
-        setError('Failed to create session. Please try again.')
+        setError('Kunde inte skapa omgången. Försök igen.')
       }
     })
   }
 
-  function formatCloseTime(iso: string) {
-    return new Date(iso).toLocaleString('sv-SE', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
-  }
-
-  if (hostName === null) return null
-
-  if (selectedDraw) {
-    const maxTotal = selectedDraw.matches.length
-    const rows = Math.pow(2, halvgarderingar) * Math.pow(3, helgarderingar)
-
-    return (
-      <div className="flex min-h-dvh flex-col items-center px-6 py-10">
-        <div className="w-full max-w-sm space-y-6">
-          <Button variant="ghost" onClick={() => setSelectedDraw(null)}>
-            <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-            Tillbaka
-          </Button>
-
-          <div>
-            <h1 className="font-display text-foreground text-2xl font-bold tracking-wider uppercase">
-              Systemstorlek
-            </h1>
-            <p className="text-muted-foreground mt-1 text-sm">
-              Välj hur stort systemet får bli. Det gäller för hela sessionen.
-            </p>
-          </div>
-
-          <Card>
-            <CardContent className="space-y-5 pt-6">
-              {/* Halvgarderingar */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">Halvgarderingar</p>
-                  <p className="text-muted-foreground text-xs">
-                    2 val per match · 2 kr/st
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    className="border-input flex h-8 w-8 items-center justify-center rounded-md border disabled:opacity-40"
-                    disabled={halvgarderingar === 0}
-                    onClick={() =>
-                      setHalvgarderingar((h) => Math.max(0, h - 1))
-                    }
-                  >
-                    <Minus className="h-3.5 w-3.5" />
-                  </button>
-                  <span className="w-5 text-center text-sm font-bold">
-                    {halvgarderingar}
-                  </span>
-                  <button
-                    className="border-input flex h-8 w-8 items-center justify-center rounded-md border disabled:opacity-40"
-                    disabled={halvgarderingar + helgarderingar >= maxTotal}
-                    onClick={() =>
-                      setHalvgarderingar((h) =>
-                        Math.min(maxTotal - helgarderingar, h + 1)
-                      )
-                    }
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Helgarderingar */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">Helgarderingar</p>
-                  <p className="text-muted-foreground text-xs">
-                    Alla 3 val per match · 3 kr/st
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    className="border-input flex h-8 w-8 items-center justify-center rounded-md border disabled:opacity-40"
-                    disabled={helgarderingar === 0}
-                    onClick={() =>
-                      setHelgarderingar((g) => Math.max(0, g - 1))
-                    }
-                  >
-                    <Minus className="h-3.5 w-3.5" />
-                  </button>
-                  <span className="w-5 text-center text-sm font-bold">
-                    {helgarderingar}
-                  </span>
-                  <button
-                    className="border-input flex h-8 w-8 items-center justify-center rounded-md border disabled:opacity-40"
-                    disabled={halvgarderingar + helgarderingar >= maxTotal}
-                    onClick={() =>
-                      setHelgarderingar((g) =>
-                        Math.min(maxTotal - halvgarderingar, g + 1)
-                      )
-                    }
-                  >
-                    <Plus className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Cost summary */}
-              <div className="bg-muted/50 space-y-1.5 rounded-lg px-4 py-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Antal rader</span>
-                  <span className="font-medium">
-                    {rows.toLocaleString('sv-SE')}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Kostnad</span>
-                  <span className="font-medium">
-                    {rows.toLocaleString('sv-SE')} kr
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {error && <p className="text-destructive text-sm">{error}</p>}
-
-          <Button
-            size="lg"
-            className="w-full"
-            disabled={isPending}
-            onClick={handleCreateSession}
+  const tabs = (
+    <div className="bg-ink-3 mb-[18px] flex gap-1.5 rounded-xl p-1">
+      {PRODUCTS.map((p) => {
+        const available = !draws || draws.some((d) => d.eventType === p)
+        const on = p === eventType
+        return (
+          <button
+            key={p}
+            type="button"
+            disabled={!available}
+            onClick={() => pickProduct(p)}
+            className={cn(
+              'h-[38px] flex-1 cursor-pointer rounded-[9px] border-0 font-sans text-[15px] font-semibold transition-colors disabled:cursor-default disabled:opacity-40',
+              on
+                ? 'bg-fg text-[oklch(0.20_0.015_60)]'
+                : 'text-fg-3 bg-transparent'
+            )}
           >
-            {isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
-            {isPending ? 'Skapar...' : 'Skapa Session'}
-          </Button>
+            {productName(p)}
+          </button>
+        )
+      })}
+    </div>
+  )
+
+  const drawCard = (
+    <div className="border-line-2 flex flex-col gap-2.5 rounded-[14px] border px-[17px] py-[15px] lg:gap-3 lg:px-5 lg:py-[18px]">
+      {draws === null && !loadError ? (
+        <div className="text-fg-3 py-2 font-mono text-[11px] tracking-[0.16em]">
+          HÄMTAR OMGÅNGAR…
+        </div>
+      ) : loadError ? (
+        <div className="text-ember-text font-mono text-[11px]">
+          Kunde inte hämta omgångar.{' '}
+          <button
+            type="button"
+            className="cursor-pointer underline"
+            onClick={() => router.refresh()}
+          >
+            Försök igen
+          </button>
+        </div>
+      ) : !draw ? (
+        <div className="text-fg-3 text-sm">
+          Ingen öppen omgång för {productName(eventType)} just nu.
+        </div>
+      ) : (
+        <>
+          <div className="flex items-baseline justify-between">
+            <span className="text-[17px] font-semibold lg:text-[19px]">
+              {drawLabel(draw.eventType, draw.closeTime)}
+            </span>
+            <span className="text-fg-3 font-mono text-[11px]">
+              {draw.matches.length} MATCHER
+            </span>
+          </div>
+          <div className="border-line-2 flex items-baseline justify-between border-t border-dashed pt-2.5 text-sm lg:pt-3">
+            <span className="text-fg-2">Stänger</span>
+            <span className="font-mono">{formatCloseTime(draw.closeTime)}</span>
+          </div>
+          <div className="flex items-baseline justify-between text-sm">
+            <span className="text-fg-2">Jackpot</span>
+            <span className="text-gold font-mono">
+              {formatJackpot(draw.jackpot)}
+            </span>
+          </div>
+        </>
+      )}
+    </div>
+  )
+
+  const nameField = (
+    <div className="mt-[22px]">
+      <FieldLabel htmlFor="host-name">Ditt namn</FieldLabel>
+      <TextInput
+        id="host-name"
+        value={hostName}
+        maxLength={20}
+        placeholder="Erik"
+        onChange={(e) => setHostName(e.target.value)}
+      />
+    </div>
+  )
+
+  const steppers = (
+    <>
+      <Kicker className="mb-3">Systemets storlek</Kicker>
+      <div className="flex flex-col gap-2.5">
+        <StepperRow
+          title="Halvgarderingar"
+          subtitle="Två tecken på matchen"
+          value={halv}
+          onDec={() => setHalv((h) => Math.max(0, h - 1))}
+          onInc={() => setHalv((h) => Math.min(matchCount - hel, h + 1))}
+          canInc={halv + hel < matchCount}
+        />
+        <StepperRow
+          title="Helgarderingar"
+          subtitle="Alla tre tecken"
+          value={hel}
+          onDec={() => setHel((h) => Math.max(0, h - 1))}
+          onInc={() => setHel((h) => Math.min(matchCount - halv, h + 1))}
+          canInc={halv + hel < matchCount}
+        />
+      </div>
+      <div className="bg-ink-3 mt-[18px] flex items-end justify-between rounded-[14px] p-[17px] lg:mt-4 lg:p-[18px]">
+        <div>
+          <div className="text-fg-3 mb-1.5 font-mono text-[11px] tracking-[0.16em]">
+            RADER
+          </div>
+          <div className="font-mono text-[29px] leading-none font-semibold lg:text-[30px]">
+            {formatNumber(rows)}
+          </div>
+        </div>
+        <div className="text-right">
+          <div className="text-fg-3 mb-1.5 font-mono text-[11px] tracking-[0.16em]">
+            KOSTNAD
+          </div>
+          <div className="text-cost font-mono text-[29px] leading-none font-semibold lg:text-[30px]">
+            {formatKr(rows * ROW_PRICE_KR)}
+          </div>
         </div>
       </div>
-    )
-  }
+    </>
+  )
+
+  const submit = (
+    <BigButton
+      className="h-[54px]"
+      variant={canCreate ? 'primary' : 'muted'}
+      disabled={!canCreate}
+      onClick={handleCreate}
+    >
+      {isPending ? 'Skapar…' : 'Skapa och dela kod'}
+    </BigButton>
+  )
 
   return (
-    <div className="flex min-h-dvh flex-col items-center px-6 py-10">
-      <div className="w-full max-w-sm space-y-6">
-        <Button
-          variant="ghost"
-          onClick={() => {
-            sessionStorage.removeItem('hostName')
-            router.push('/')
-          }}
+    <div className="animate-fade-up flex h-dvh flex-col">
+      <ScreenHeader back="/" title="Ny omgång" />
+
+      <div className="scrollbar-none flex min-h-0 flex-1 flex-col items-center overflow-y-auto px-[22px] pb-5 lg:px-11 lg:pb-7">
+        <div className="w-full lg:max-w-[440px]">
+          {tabs}
+          {drawCard}
+          {nameField}
+          <div className="mt-[22px]">{steppers}</div>
+          <div className="mt-4 hidden lg:block">{submit}</div>
+          <ErrorText>{error}</ErrorText>
+        </div>
+      </div>
+      <ScreenFooter className="lg:hidden">{submit}</ScreenFooter>
+    </div>
+  )
+}
+
+function StepperRow({
+  title,
+  subtitle,
+  value,
+  onDec,
+  onInc,
+  canInc,
+}: {
+  title: string
+  subtitle: string
+  value: number
+  onDec: () => void
+  onInc: () => void
+  canInc: boolean
+}) {
+  return (
+    <div className="border-line-2 flex items-center justify-between gap-3 rounded-[14px] border px-[15px] py-[13px]">
+      <div className="min-w-0">
+        <div className="text-base font-semibold">{title}</div>
+        <div className="text-fg-3 text-[13px]">{subtitle}</div>
+      </div>
+      <div className="flex shrink-0 items-center gap-1">
+        <StepButton
+          onClick={onDec}
+          disabled={value === 0}
+          aria-label={`Färre ${title.toLowerCase()}`}
         >
-          <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-          Tillbaka
-        </Button>
-
-        <div>
-          <h1 className="font-display text-foreground text-2xl font-bold tracking-wider uppercase">
-            Välj Omgång
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Hej <span className="text-foreground font-medium">{hostName}</span>,
-            välj vilken omgång du vill tippa.
-          </p>
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-16">
-            <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
-          </div>
-        ) : draws.length > 0 ? (
-          <div className="space-y-3">
-            {draws.map((draw) => (
-              <Card
-                key={`${draw.eventType}-${draw.drawNumber}`}
-                className={`hover:border-primary/20 cursor-pointer transition-colors ${
-                  isPending ? 'pointer-events-none opacity-50' : ''
-                }`}
-                onClick={() => handleSelectDraw(draw)}
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="font-display text-base tracking-wider uppercase">
-                        {draw.productName}
-                      </CardTitle>
-                      <CardDescription className="mt-0.5">
-                        Omgång {draw.drawNumber}
-                        {draw.drawComment && ` · ${draw.drawComment}`}
-                      </CardDescription>
-                    </div>
-                    {draw.jackpot && (
-                      <div className="bg-primary/10 text-primary flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium">
-                        <Trophy className="h-3 w-3" />
-                        {draw.jackpot} kr
-                      </div>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-muted-foreground flex items-center justify-between text-xs">
-                    <span>{draw.matches.length} matcher</span>
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      Stänger {formatCloseTime(draw.closeTime)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground text-sm">
-                Inga omgångar tillgängliga just nu.
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {error && <p className="text-destructive text-sm">{error}</p>}
-
-        <div className="flex justify-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={fetchDraws}
-            disabled={loading}
-          >
-            <RefreshCw
-              className={`mr-1.5 h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`}
-            />
-            Uppdatera
-          </Button>
-        </div>
+          −
+        </StepButton>
+        <span className="w-7 text-center font-mono text-[19px] font-semibold">
+          {value}
+        </span>
+        <StepButton
+          onClick={onInc}
+          disabled={!canInc}
+          aria-label={`Fler ${title.toLowerCase()}`}
+        >
+          +
+        </StepButton>
       </div>
     </div>
   )

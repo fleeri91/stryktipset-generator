@@ -1,19 +1,28 @@
 'use client'
 
-import { useState, useTransition, useMemo } from 'react'
+import { useMemo, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { formatKickoff } from '@/lib/matches'
+import { SessionShell } from '@/components/bongen/session-shell'
+import { useToast } from '@/components/bongen/toast'
+import {
+  BigButton,
+  ErrorText,
+  LimitChip,
+  ScreenFooter,
+  ScreenHeader,
+} from '@/components/bongen/ui'
+import { usePollRefresh } from '@/components/bongen/use-session'
+import type { SessionSummary } from '@/lib/session-summary'
+import { cn } from '@/lib/utils'
 
 interface MatchData {
   matchIndex: number
   homeTeam: string
   awayTeam: string
-  league: string
-  kickoff: string
+  /** Betting distribution per outcome in percent (1, X, 2), when available */
+  streck: [string, string, string] | null
+  /** Odds per outcome (1, X, 2), when available */
+  odds: [string, string, string] | null
 }
 
 interface Picks {
@@ -24,13 +33,9 @@ interface Picks {
 }
 
 interface BetBuilderClientProps {
-  sessionCode: string
+  summary: SessionSummary
   matches: MatchData[]
   existingSelections: Record<number, Picks>
-  participantName: string
-  isEditing: boolean
-  maxHalvgarderingar: number
-  maxHelgarderingar: number
 }
 
 type PickKey = 'home' | 'draw' | 'away'
@@ -42,243 +47,240 @@ const CHOICES: { key: PickKey; label: string }[] = [
 ]
 
 export function BetBuilderClient({
-  sessionCode,
+  summary,
   matches,
   existingSelections,
-  participantName,
-  isEditing,
-  maxHalvgarderingar,
-  maxHelgarderingar,
 }: BetBuilderClientProps) {
   const router = useRouter()
+  const flash = useToast()
   const [isPending, startTransition] = useTransition()
-  const [error, setError] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
+  usePollRefresh(summary.status === 'BETTING')
+
+  const maxHalv = summary.halvgarderingar
+  const maxHel = summary.helgarderingar
+  const isEditing = summary.me.submitted
+  const lobbyHref = `/session/${summary.code}`
+
+  // Picks per match, ordered: index 0 is the primary pick
   const [selections, setSelections] = useState<Record<number, PickKey[]>>(
     () => {
       const initial: Record<number, PickKey[]> = {}
       matches.forEach((m) => {
         const existing = existingSelections[m.matchIndex]
-        if (existing) {
-          const allPicks = CHOICES.map((c) => c.key).filter(
-            (k) => existing[k]
-          ) as PickKey[]
-          const fc = existing.firstChoice as PickKey | null | undefined
-          initial[m.matchIndex] =
-            fc && allPicks.includes(fc)
-              ? [fc, ...allPicks.filter((k) => k !== fc)]
-              : allPicks
-        } else {
+        if (!existing) {
           initial[m.matchIndex] = []
+          return
         }
+        const all = CHOICES.map((c) => c.key).filter((k) => existing[k])
+        const fc = existing.firstChoice as PickKey | null | undefined
+        initial[m.matchIndex] =
+          fc && all.includes(fc) ? [fc, ...all.filter((k) => k !== fc)] : all
       })
       return initial
     }
   )
 
-  const selectionsList = useMemo(
-    () =>
-      matches.map((m) => {
-        const arr = selections[m.matchIndex]
-        return {
-          home: arr.includes('home'),
-          draw: arr.includes('draw'),
-          away: arr.includes('away'),
-        }
-      }),
-    [matches, selections]
-  )
+  const { halv, hel, filled } = useMemo(() => {
+    let halv = 0
+    let hel = 0
+    let filled = 0
+    for (const m of matches) {
+      const n = selections[m.matchIndex]?.length ?? 0
+      if (n > 0) filled++
+      if (n === 2) halv++
+      if (n === 3) hel++
+    }
+    return { halv, hel, filled }
+  }, [matches, selections])
 
-  const allHavePick = selectionsList.every((s) => s.home || s.draw || s.away)
+  const complete = filled === matches.length
 
-  const halvgarderingar = selectionsList.filter(
-    (s) => [s.home, s.draw, s.away].filter(Boolean).length === 2
-  ).length
-  const helgarderingar = selectionsList.filter(
-    (s) => [s.home, s.draw, s.away].filter(Boolean).length === 3
-  ).length
+  function toggle(matchIndex: number, key: PickKey) {
+    const current = selections[matchIndex] ?? []
+    if (current.includes(key)) {
+      setSelections({
+        ...selections,
+        [matchIndex]: current.filter((k) => k !== key),
+      })
+      return
+    }
+    const next = current.length + 1
+    // Adding a 2nd mark turns this match into a halvgardering; a 3rd into a helgardering
+    if (next === 2 && halv + 1 > maxHalv) {
+      flash('Alla halvgarderingar är använda')
+      return
+    }
+    if (next === 3 && hel + 1 > maxHel) {
+      flash('Alla helgarderingar är använda')
+      return
+    }
+    setSelections({ ...selections, [matchIndex]: [...current, key] })
+  }
 
-  function togglePick(matchIndex: number, key: PickKey) {
-    setSelections((prev) => {
-      const current = prev[matchIndex]
-      if (current.includes(key)) {
-        return { ...prev, [matchIndex]: current.filter((k) => k !== key) }
-      }
-      if (current.length >= 3) return prev
-      if (current.length === 1 && halvgarderingar >= maxHalvgarderingar)
-        return prev
-      if (current.length === 2 && helgarderingar >= maxHelgarderingar)
-        return prev
-      return { ...prev, [matchIndex]: [...current, key] }
-    })
+  function clearPicks() {
+    const empty: Record<number, PickKey[]> = {}
+    matches.forEach((m) => (empty[m.matchIndex] = []))
+    setSelections(empty)
   }
 
   function handleSubmit() {
-    if (!allHavePick) return
-
-    setError('')
+    if (!complete || isPending) return
+    setError(null)
     startTransition(async () => {
       try {
-        const payload = {
-          selections: matches.map((m) => {
-            const arr = selections[m.matchIndex]
-            return {
-              matchIndex: m.matchIndex,
-              home: arr.includes('home'),
-              draw: arr.includes('draw'),
-              away: arr.includes('away'),
-              firstChoice: arr[0],
-            }
-          }),
-        }
-
-        const res = await fetch(`/api/sessions/${sessionCode}/selections`, {
+        const res = await fetch(`/api/sessions/${summary.code}/selections`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: JSON.stringify({
+            selections: matches.map((m) => {
+              const arr = selections[m.matchIndex]
+              return {
+                matchIndex: m.matchIndex,
+                home: arr.includes('home'),
+                draw: arr.includes('draw'),
+                away: arr.includes('away'),
+                firstChoice: arr[0],
+              }
+            }),
+          }),
         })
-
         if (!res.ok) {
           const data = await res.json().catch(() => ({}))
-          setError(data.error || 'Something went wrong.')
+          setError(
+            res.status === 403
+              ? 'Omgången är låst. Bongen har redan genererats.'
+              : data.error || 'Kunde inte spara tipset. Försök igen.'
+          )
           return
         }
-
-        router.push(`/session/${sessionCode}`)
+        flash(isEditing ? 'Ändringar sparade' : 'Tipset inskickat')
+        router.push(lobbyHref)
         router.refresh()
       } catch {
-        setError('Failed to save picks. Please try again.')
+        setError('Kunde inte spara tipset. Försök igen.')
       }
     })
   }
 
+  const submitLabel = complete
+    ? isEditing
+      ? 'Spara ändringar'
+      : 'Skicka in tipset'
+    : `Tippa alla ${matches.length} (${filled}/${matches.length})`
+
+  const chips = (
+    <>
+      <LimitChip over={halv > maxHalv}>
+        {halv}/{maxHalv} halv
+      </LimitChip>
+      <LimitChip over={hel > maxHel}>
+        {hel}/{maxHel} hel
+      </LimitChip>
+    </>
+  )
+
+  const clearButton = (
+    <button
+      type="button"
+      onClick={clearPicks}
+      className="border-line-3 text-fg-2 hover:border-fg-4 cursor-pointer rounded-lg border bg-transparent px-2.5 py-1.5 font-mono text-[10px] tracking-[0.1em] transition-colors lg:px-[11px] lg:py-[7px]"
+    >
+      RENSA
+    </button>
+  )
+
   return (
-    <div className="flex min-h-dvh flex-col items-center px-6 py-10">
-      <div className="w-full max-w-xl space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            onClick={() => router.push(`/session/${sessionCode}`)}
-          >
-            <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-            Tillbaka
-          </Button>
-          <p className="text-muted-foreground text-xs tracking-wider uppercase">
-            {participantName}s bong
-          </p>
-        </div>
+    <SessionShell summary={summary}>
+      <div className="border-line border-b">
+        <ScreenHeader
+          back={lobbyHref}
+          title="Ditt tips"
+          className="px-[18px] pb-2.5 lg:px-10 lg:pb-4"
+          right={
+            <>
+              <div className="hidden gap-[7px] lg:flex">{chips}</div>
+              {clearButton}
+            </>
+          }
+        />
+        <div className="flex gap-[7px] px-[18px] pb-2.5 lg:hidden">{chips}</div>
+      </div>
 
-        {/* System size */}
-        <Card>
-          <CardContent className="flex items-center justify-between py-4">
-            <div>
-              <p className="text-muted-foreground text-[10px] tracking-widest uppercase">
-                Systemstorlek
-              </p>
-              <p className="text-foreground mt-1 text-sm">
-                Max {maxHalvgarderingar} halvgarderingar · max{' '}
-                {maxHelgarderingar} helgarderingar
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-primary text-sm font-bold">
-                {halvgarderingar}/{maxHalvgarderingar} halv
-              </p>
-              <p className="text-primary text-sm font-bold">
-                {helgarderingar}/{maxHelgarderingar} hel
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Match list */}
-        <Card>
-          <CardContent className="space-y-1">
-            {matches.map((match) => {
-              const picks = selections[match.matchIndex]
-              const hasPick = picks.length > 0
-              return (
-                <div
-                  key={match.matchIndex}
-                  className="border-border/50 flex items-center gap-3 border-b py-2.5 last:border-0"
-                >
-                  <Badge className="h-8 w-8 shrink-0 text-center text-sm font-bold">
-                    {match.matchIndex}
-                  </Badge>
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className={`truncate text-sm ${
-                        hasPick ? 'text-foreground' : 'text-muted-foreground'
-                      }`}
-                    >
-                      {match.homeTeam} — {match.awayTeam}
-                    </p>
-                    <p className="text-muted-foreground text-[11px]">
-                      {match.league} · {formatKickoff(match.kickoff)}
-                    </p>
-                  </div>
-                  <div className="flex gap-1">
-                    {CHOICES.map(({ key, label }) => {
-                      const pos = picks.indexOf(key)
-                      const isPrimary = pos === 0
-                      const isSecondary = pos === 1
-                      const isTertiary = pos === 2
-                      const wouldAddHalv =
-                        pos === -1 &&
-                        picks.length === 1 &&
-                        halvgarderingar >= maxHalvgarderingar
-                      const wouldAddHel =
-                        pos === -1 &&
-                        picks.length === 2 &&
-                        helgarderingar >= maxHelgarderingar
-                      const disabled = wouldAddHalv || wouldAddHel
-                      return (
+      <div className="scrollbar-none flex min-h-0 flex-1 flex-col items-center overflow-y-auto px-3 pt-0.5 pb-2 lg:px-10 lg:pt-2 lg:pb-3">
+        <div className="w-full lg:max-w-[440px]">
+          {matches.map((m) => {
+            const sel = selections[m.matchIndex] ?? []
+            return (
+              <div
+                key={m.matchIndex}
+                className="border-line flex items-center gap-[9px] border-b px-[5px] py-[5px] lg:gap-3 lg:px-0.5 lg:py-1.5"
+              >
+                <div className="text-fg-4 w-3.5 shrink-0 text-right font-mono text-[11px] lg:w-4">
+                  {m.matchIndex}
+                </div>
+                <div className="min-w-0 flex-1 truncate text-sm leading-[1.3] font-semibold">
+                  {m.homeTeam} – {m.awayTeam}
+                </div>
+                <div className="flex shrink-0 items-start gap-[5px]">
+                  {CHOICES.map(({ key, label }, ki) => {
+                    const pos = sel.indexOf(key)
+                    const on = pos >= 0
+                    const primary = pos === 0
+                    return (
+                      <div
+                        key={key}
+                        className="flex flex-col items-center gap-[3px]"
+                      >
                         <button
-                          key={key}
                           type="button"
-                          disabled={disabled}
-                          onClick={() => togglePick(match.matchIndex, key)}
-                          className={`h-10 w-10 rounded-md border text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-30 ${
-                            isPrimary
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : isSecondary || isTertiary
-                                ? 'bg-primary/20 text-primary border-primary/30'
-                                : 'border-input text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                          }`}
+                          aria-pressed={on}
+                          onClick={() => toggle(m.matchIndex, key)}
+                          className={cn(
+                            'flex h-[38px] w-[38px] shrink-0 cursor-pointer items-center justify-center rounded-[9px] border-0 font-mono text-[15px] font-semibold transition-colors duration-[120ms] select-none',
+                            primary
+                              ? 'bg-ember text-ember-fg'
+                              : on
+                                ? 'bg-ember-soft text-warn-fg'
+                                : 'text-fg-4 hover:text-fg-2 bg-[oklch(0.225_0.01_60)]'
+                          )}
                         >
                           {label}
                         </button>
-                      )
-                    })}
-                  </div>
+                        {m.streck && (
+                          <div className="text-fg-3 text-center font-mono text-[9.5px] leading-none tracking-[0.02em]">
+                            {m.streck[ki]}%
+                          </div>
+                        )}
+                        {m.odds && (
+                          <div className="text-fg-3 text-center font-mono text-[9.5px] leading-none tracking-[0.02em]">
+                            {m.odds[ki]}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
-              )
-            })}
-          </CardContent>
-        </Card>
-
-        {/* Stats + submit */}
-        <Card>
-          <CardContent className="space-y-4">
-            {error && <p className="text-destructive text-sm">{error}</p>}
-
-            <Button
-              size="lg"
-              className="w-full"
-              disabled={!allHavePick || isPending}
-              onClick={handleSubmit}
-            >
-              {isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
-              {isPending
-                ? 'Sparar...'
-                : isEditing
-                  ? 'Uppdatera Bong'
-                  : 'Skicka In Bong'}
-            </Button>
-          </CardContent>
-        </Card>
+              </div>
+            )
+          })}
+        </div>
       </div>
-    </div>
+
+      <ScreenFooter className="px-5 pt-[11px] pb-6 lg:flex-row lg:justify-center lg:px-10 lg:pt-3.5 lg:pb-[22px]">
+        <div className="w-full lg:max-w-[440px]">
+          <ErrorText>{error}</ErrorText>
+          <BigButton
+            className={error ? 'mt-2' : ''}
+            variant={complete ? 'primary' : 'muted'}
+            disabled={!complete || isPending}
+            onClick={handleSubmit}
+          >
+            {isPending ? 'Sparar…' : submitLabel}
+          </BigButton>
+        </div>
+      </ScreenFooter>
+    </SessionShell>
   )
 }

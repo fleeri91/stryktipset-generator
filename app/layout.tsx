@@ -1,24 +1,28 @@
-import type { Metadata } from 'next'
-import { Oswald, DM_Mono } from 'next/font/google'
-import { Toaster } from '@/components/ui/sonner'
+import type { Metadata, Viewport } from 'next'
+import { Source_Serif_4, IBM_Plex_Mono } from 'next/font/google'
+import { ToastProvider } from '@/components/bongen/toast'
 import './globals.css'
 
-const oswald = Oswald({
+const sourceSerif = Source_Serif_4({
   subsets: ['latin'],
-  variable: '--font-display',
-  weight: ['400', '500', '600', '700'],
+  variable: '--font-serif',
+  weight: ['400', '600', '700'],
 })
 
-const dmMono = DM_Mono({
+const plexMono = IBM_Plex_Mono({
   subsets: ['latin'],
-  variable: '--font-mono',
-  weight: ['400', '500'],
+  variable: '--font-plex-mono',
+  weight: ['400', '500', '600'],
 })
 
 export const metadata: Metadata = {
-  title: 'Stryktipset — Samarbeta • Tippa • Vinn',
+  title: 'Bongen — Gängets tips, en bong.',
   description:
-    'Collaboratively build your Stryktipset bong with friends in real-time.',
+    'Alla tippar var för sig. Garderingarna hamnar där ni är oense, och systemet håller sig inom budgeten.',
+}
+
+export const viewport: Viewport = {
+  themeColor: '#232120',
 }
 
 export default function RootLayout({
@@ -28,9 +32,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="sv" className="dark">
-      <body className={`${oswald.variable} ${dmMono.variable}`}>
-        {children}
-        <Toaster />
+      <body className={`${sourceSerif.variable} ${plexMono.variable}`}>
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   )

@@ -1,7 +1,14 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
-import { mergeSelections, trimToMaxRows, generateSystemBong, buildPrimaryCounts, calculateRows } from '@/lib/bong'
+import {
+  mergeSelections,
+  trimToMaxRows,
+  generateSystemBong,
+  buildPrimaryCounts,
+  calculateRows,
+} from '@/lib/bong'
+import { toSessionSummary } from '@/lib/session-summary'
 import { ResultClient } from './result-client'
 
 interface Props {
@@ -25,7 +32,7 @@ export default async function ResultPage({ params }: Props) {
             include: {
               selections: { orderBy: { matchIndex: 'asc' } },
             },
-            orderBy: { isHost: 'desc' },
+            orderBy: { id: 'asc' },
           },
         },
       },
@@ -46,7 +53,6 @@ export default async function ResultPage({ params }: Props) {
     matchIndex: m.matchIndex,
     homeTeam: m.homeTeam,
     awayTeam: m.awayTeam,
-    league: m.league,
   }))
 
   const allSelections = session.participants.map((p) =>
@@ -61,13 +67,15 @@ export default async function ResultPage({ params }: Props) {
 
   const matchIndices = matches.map((m) => m.matchIndex)
 
-  let combined: { matchIndex: number; home: boolean; draw: boolean; away: boolean }[]
+  let combined: {
+    matchIndex: number
+    home: boolean
+    draw: boolean
+    away: boolean
+  }[]
 
-  if (
-    session.halvgarderingar !== null &&
-    session.helgarderingar !== null
-  ) {
-    // New algorithm: generate system bong with exact halvgardering/helgardering counts
+  if (session.halvgarderingar !== null && session.helgarderingar !== null) {
+    // System bong with exact halvgardering/helgardering counts
     combined = generateSystemBong(
       allSelections,
       matchIndices,
@@ -79,42 +87,16 @@ export default async function ResultPage({ params }: Props) {
     const merged = mergeSelections(allSelections)
     const primaryCounts = buildPrimaryCounts(allSelections, matchIndices)
     const maxRows = session.maxRows
-    combined = maxRows !== null ? trimToMaxRows(merged, maxRows, primaryCounts) : merged
+    combined =
+      maxRows !== null ? trimToMaxRows(merged, maxRows, primaryCounts) : merged
   }
-
-  const rows = calculateRows(combined)
-
-  // Track who picked what per match
-  const contributors: Record<
-    number,
-    { home: string[]; draw: string[]; away: string[] }
-  > = {}
-  for (const match of matches) {
-    contributors[match.matchIndex] = { home: [], draw: [], away: [] }
-  }
-  for (const p of session.participants) {
-    for (const s of p.selections) {
-      if (s.home) contributors[s.matchIndex].home.push(p.name)
-      if (s.draw) contributors[s.matchIndex].draw.push(p.name)
-      if (s.away) contributors[s.matchIndex].away.push(p.name)
-    }
-  }
-
-  const participants = session.participants.map((p) => ({
-    id: p.id,
-    name: p.name,
-    isHost: p.isHost,
-  }))
 
   return (
     <ResultClient
-      sessionCode={code}
+      summary={toSessionSummary(session, participant)}
       matches={matches}
       combined={combined}
-      contributors={contributors}
-      participants={participants}
-      participantCount={participants.length}
-      rows={rows}
+      rows={calculateRows(combined)}
     />
   )
 }
