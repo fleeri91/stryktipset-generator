@@ -27,26 +27,9 @@ export async function POST(
       )
     }
 
-    const body = await request.json().catch(() => ({}))
-    const halvgarderingar =
-      typeof body.halvgarderingar === 'number' && body.halvgarderingar >= 0
-        ? Math.round(body.halvgarderingar)
-        : 0
-    const helgarderingar =
-      typeof body.helgarderingar === 'number' && body.helgarderingar >= 0
-        ? Math.round(body.helgarderingar)
-        : 0
-
-    if (halvgarderingar + helgarderingar > 13) {
-      return NextResponse.json(
-        { error: 'Total garderingar cannot exceed 13' },
-        { status: 400 }
-      )
-    }
-
     await prisma.session.update({
       where: { id: session.id },
-      data: { status: 'GENERATED', halvgarderingar, helgarderingar },
+      data: { status: 'GENERATED' },
     })
 
     return NextResponse.json({ success: true })

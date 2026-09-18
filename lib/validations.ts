@@ -1,22 +1,32 @@
 import { z } from 'zod'
 
-export const createSessionSchema = z.object({
-  hostName: z.string().min(1, 'Namn krävs').max(20, 'Max 20 tecken').trim(),
-  eventType: z.string().min(1),
-  drawNumber: z.number().int(),
-  closeTime: z.string(),
-  matches: z
-    .array(
-      z.object({
-        homeTeam: z.string().min(1),
-        awayTeam: z.string().min(1),
-        league: z.string().min(1),
-        kickoff: z.string(),
-      })
-    )
-    .min(1, 'Minst en match krävs')
-    .max(13, 'Max 13 matcher'),
-})
+export const createSessionSchema = z
+  .object({
+    hostName: z.string().min(1, 'Namn krävs').max(20, 'Max 20 tecken').trim(),
+    eventType: z.string().min(1),
+    drawNumber: z.number().int(),
+    closeTime: z.string(),
+    matches: z
+      .array(
+        z.object({
+          homeTeam: z.string().min(1),
+          awayTeam: z.string().min(1),
+          league: z.string().min(1),
+          kickoff: z.string(),
+        })
+      )
+      .min(1, 'Minst en match krävs')
+      .max(13, 'Max 13 matcher'),
+    halvgarderingar: z.number().int().min(0).default(0),
+    helgarderingar: z.number().int().min(0).default(0),
+  })
+  .refine(
+    (data) => data.halvgarderingar + data.helgarderingar <= data.matches.length,
+    {
+      message: 'Antal garderingar kan inte överstiga antal matcher',
+      path: ['halvgarderingar'],
+    }
+  )
 
 export const joinSessionSchema = z.object({
   name: z.string().min(1, 'Namn krävs').max(20, 'Max 20 tecken').trim(),
@@ -36,8 +46,8 @@ export const submitSelectionsSchema = z.object({
         .refine((s) => s[s.firstChoice] === true, {
           message: 'firstChoice måste vara ett valt alternativ',
         })
-        .refine((s) => [s.home, s.draw, s.away].filter(Boolean).length <= 2, {
-          message: 'Max 2 val per match',
+        .refine((s) => [s.home, s.draw, s.away].filter(Boolean).length <= 3, {
+          message: 'Max 3 val per match',
         })
     )
     .min(1)

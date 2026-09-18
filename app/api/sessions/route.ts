@@ -16,7 +16,15 @@ export async function POST(request: Request) {
       )
     }
 
-    const { hostName, eventType, drawNumber, closeTime, matches } = result.data
+    const {
+      hostName,
+      eventType,
+      drawNumber,
+      closeTime,
+      matches,
+      halvgarderingar,
+      helgarderingar,
+    } = result.data
 
     let code = generateSessionCode()
     let attempts = 0
@@ -33,6 +41,8 @@ export async function POST(request: Request) {
         eventType,
         drawNumber,
         closesAt: new Date(closeTime),
+        halvgarderingar,
+        helgarderingar,
         matches: {
           create: matches.map((match, index) => ({
             matchIndex: index + 1,

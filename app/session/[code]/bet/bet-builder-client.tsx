@@ -29,6 +29,8 @@ interface BetBuilderClientProps {
   existingSelections: Record<number, Picks>
   participantName: string
   isEditing: boolean
+  maxHalvgarderingar: number
+  maxHelgarderingar: number
 }
 
 type PickKey = 'home' | 'draw' | 'away'
@@ -45,6 +47,8 @@ export function BetBuilderClient({
   existingSelections,
   participantName,
   isEditing,
+  maxHalvgarderingar,
+  maxHelgarderingar,
 }: BetBuilderClientProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -87,13 +91,24 @@ export function BetBuilderClient({
 
   const allHavePick = selectionsList.every((s) => s.home || s.draw || s.away)
 
+  const halvgarderingar = selectionsList.filter(
+    (s) => [s.home, s.draw, s.away].filter(Boolean).length === 2
+  ).length
+  const helgarderingar = selectionsList.filter(
+    (s) => [s.home, s.draw, s.away].filter(Boolean).length === 3
+  ).length
+
   function togglePick(matchIndex: number, key: PickKey) {
     setSelections((prev) => {
       const current = prev[matchIndex]
       if (current.includes(key)) {
         return { ...prev, [matchIndex]: current.filter((k) => k !== key) }
       }
-      if (current.length >= 2) return prev
+      if (current.length >= 3) return prev
+      if (current.length === 1 && halvgarderingar >= maxHalvgarderingar)
+        return prev
+      if (current.length === 2 && helgarderingar >= maxHelgarderingar)
+        return prev
       return { ...prev, [matchIndex]: [...current, key] }
     })
   }
@@ -154,6 +169,29 @@ export function BetBuilderClient({
           </p>
         </div>
 
+        {/* System size */}
+        <Card>
+          <CardContent className="flex items-center justify-between py-4">
+            <div>
+              <p className="text-muted-foreground text-[10px] tracking-widest uppercase">
+                Systemstorlek
+              </p>
+              <p className="text-foreground mt-1 text-sm">
+                Max {maxHalvgarderingar} halvgarderingar · max{' '}
+                {maxHelgarderingar} helgarderingar
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-primary text-sm font-bold">
+                {halvgarderingar}/{maxHalvgarderingar} halv
+              </p>
+              <p className="text-primary text-sm font-bold">
+                {helgarderingar}/{maxHelgarderingar} hel
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Match list */}
         <Card>
           <CardContent className="space-y-1">
@@ -182,18 +220,29 @@ export function BetBuilderClient({
                   </div>
                   <div className="flex gap-1">
                     {CHOICES.map(({ key, label }) => {
-                      const pos = selections[match.matchIndex].indexOf(key)
+                      const pos = picks.indexOf(key)
                       const isPrimary = pos === 0
                       const isSecondary = pos === 1
+                      const isTertiary = pos === 2
+                      const wouldAddHalv =
+                        pos === -1 &&
+                        picks.length === 1 &&
+                        halvgarderingar >= maxHalvgarderingar
+                      const wouldAddHel =
+                        pos === -1 &&
+                        picks.length === 2 &&
+                        helgarderingar >= maxHelgarderingar
+                      const disabled = wouldAddHalv || wouldAddHel
                       return (
                         <button
                           key={key}
                           type="button"
+                          disabled={disabled}
                           onClick={() => togglePick(match.matchIndex, key)}
-                          className={`h-10 w-10 rounded-md border text-sm font-medium transition-colors ${
+                          className={`h-10 w-10 rounded-md border text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-30 ${
                             isPrimary
                               ? 'bg-primary text-primary-foreground border-primary'
-                              : isSecondary
+                              : isSecondary || isTertiary
                                 ? 'bg-primary/20 text-primary border-primary/30'
                                 : 'border-input text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                           }`}

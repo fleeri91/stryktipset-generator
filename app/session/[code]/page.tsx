@@ -33,6 +33,8 @@ export default async function SessionPage({ params }: Props) {
   }
 
   const session = participant.session
+  const halvgarderingar = session.halvgarderingar ?? 0
+  const helgarderingar = session.helgarderingar ?? 0
 
   return (
     <LobbyClient
@@ -40,6 +42,8 @@ export default async function SessionPage({ params }: Props) {
       status={session.status}
       participants={session.participants}
       currentParticipantId={participant.id}
+      halvgarderingar={halvgarderingar}
+      helgarderingar={helgarderingar}
     />
   )
 }

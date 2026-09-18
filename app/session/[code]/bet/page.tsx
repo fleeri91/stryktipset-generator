@@ -61,6 +61,8 @@ export default async function BetPage({ params }: Props) {
       existingSelections={existing}
       participantName={participant.name}
       isEditing={participant.submitted}
+      maxHalvgarderingar={participant.session.halvgarderingar ?? 0}
+      maxHelgarderingar={participant.session.helgarderingar ?? 0}
     />
   )
 }

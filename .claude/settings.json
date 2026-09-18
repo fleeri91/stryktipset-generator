@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx eslint *)",
+      "Skill(run)",
+      "Skill(run:*)",
+      "Bash(grep -Hm1 ^description: '/media/eriksson/Samsung SSD 980/CodeWorkspace/stryktipset-generator/.claude/skills/*/SKILL.md')",
+      "Bash(npx --no-install chromium-cli --help)",
+      "Bash(npm ls *)",
+      "Bash(node -e \"require.resolve\\('playwright'\\)\")",
+      "Bash(find / -maxdepth 6 -iname \"*playwright*\" -not -path \"*/proc/*\" 2>/dev/null | head -20; echo ---; find / -maxdepth 4 -iname \"*.cache\" -not -path \"*/proc/*\" 2>/dev/null | head; ls ~/.cache/ms-playwright 2>&1)",
+      "Read(//home/eriksson/.cache/ms-playwright/**)",
+      "Read(//media/eriksson/Samsung SSD 980/CodeWorkspace/stryktipset-ai-prediction/node_modules/.bin/**)",
+      "Bash(node -e \"console.log\\(require.resolve\\('playwright', {paths: ['/media/eriksson/Samsung SSD 980/CodeWorkspace/stryktipset-ai-prediction']}\\)\\)\")",
+      "Read(//media/eriksson/Samsung SSD 980/CodeWorkspace/stryktipset-ai-prediction/**)",
+      "Bash(node \"/tmp/claude-1000/-media-eriksson-Samsung-SSD-980-CodeWorkspace-stryktipset-generator/572c6508-99fe-453c-8aa1-24defb7048e5/scratchpad/drive.js\")",
+      "Bash(cp \"/tmp/claude-1000/-media-eriksson-Samsung-SSD-980-CodeWorkspace-stryktipset-generator/572c6508-99fe-453c-8aa1-24defb7048e5/scratchpad/drive.js\" \"/media/eriksson/Samsung SSD 980/CodeWorkspace/stryktipset-ai-prediction/drive-tmp.js\")",
+      "Bash(node drive-tmp.js)",
+      "Read(//tmp/claude-1000/**)",
+      "Bash(rm \"/media/eriksson/Samsung SSD 980/CodeWorkspace/stryktipset-ai-prediction/drive-tmp.js\")",
+      "Bash(npx prisma *)",
+      "Bash(node -e ' *)",
+      "Bash(rm -f \"/media/eriksson/Samsung SSD 980/CodeWorkspace/stryktipset-ai-prediction/drive-tmp.js\" /tmp/claude-1000/check-session.mjs)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(pkill -f \"npx prisma studio\")"
+    ],
+    "additionalDirectories": [
+      "/media/eriksson/Samsung SSD 980/CodeWorkspace/stryktipset-ai-prediction"
+    ]
+  }
+}

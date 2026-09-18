@@ -39,6 +39,24 @@ export async function PUT(
 
     const { selections } = validation.data
 
+    const maxHalvgarderingar = participant.session.halvgarderingar ?? 0
+    const maxHelgarderingar = participant.session.helgarderingar ?? 0
+    const halvgarderingar = selections.filter(
+      (s) => [s.home, s.draw, s.away].filter(Boolean).length === 2
+    ).length
+    const helgarderingar = selections.filter(
+      (s) => [s.home, s.draw, s.away].filter(Boolean).length === 3
+    ).length
+
+    if (halvgarderingar > maxHalvgarderingar || helgarderingar > maxHelgarderingar) {
+      return NextResponse.json(
+        {
+          error: `Max ${maxHalvgarderingar} halvgarderingar och ${maxHelgarderingar} helgarderingar tillåtna`,
+        },
+        { status: 400 }
+      )
+    }
+
     // Upsert all selections and mark as submitted in a transaction
     await prisma.$transaction([
       // Delete existing selections (simpler than individual upserts)

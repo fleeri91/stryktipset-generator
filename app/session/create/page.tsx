@@ -2,7 +2,15 @@
 
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Loader2, RefreshCw, Calendar, Trophy } from 'lucide-react'
+import {
+  ArrowLeft,
+  Loader2,
+  RefreshCw,
+  Calendar,
+  Trophy,
+  Minus,
+  Plus,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -39,6 +47,10 @@ export default function CreateSessionPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  const [selectedDraw, setSelectedDraw] = useState<DrawInfo | null>(null)
+  const [halvgarderingar, setHalvgarderingar] = useState(0)
+  const [helgarderingar, setHelgarderingar] = useState(0)
+
   useEffect(() => {
     const stored = sessionStorage.getItem('hostName')
     if (!stored) {
@@ -65,8 +77,16 @@ export default function CreateSessionPage() {
   }
 
   function handleSelectDraw(draw: DrawInfo) {
-    if (!hostName) return
+    setError('')
+    setHalvgarderingar(0)
+    setHelgarderingar(0)
+    setSelectedDraw(draw)
+  }
 
+  function handleCreateSession() {
+    if (!hostName || !selectedDraw) return
+
+    const draw = selectedDraw
     setError('')
     startTransition(async () => {
       try {
@@ -88,6 +108,8 @@ export default function CreateSessionPage() {
             drawNumber: draw.drawNumber,
             closeTime: draw.closeTime,
             matches,
+            halvgarderingar,
+            helgarderingar,
           }),
         })
 
@@ -117,6 +139,133 @@ export default function CreateSessionPage() {
   }
 
   if (hostName === null) return null
+
+  if (selectedDraw) {
+    const maxTotal = selectedDraw.matches.length
+    const rows = Math.pow(2, halvgarderingar) * Math.pow(3, helgarderingar)
+
+    return (
+      <div className="flex min-h-dvh flex-col items-center px-6 py-10">
+        <div className="w-full max-w-sm space-y-6">
+          <Button variant="ghost" onClick={() => setSelectedDraw(null)}>
+            <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+            Tillbaka
+          </Button>
+
+          <div>
+            <h1 className="font-display text-foreground text-2xl font-bold tracking-wider uppercase">
+              Systemstorlek
+            </h1>
+            <p className="text-muted-foreground mt-1 text-sm">
+              Välj hur stort systemet får bli. Det gäller för hela sessionen.
+            </p>
+          </div>
+
+          <Card>
+            <CardContent className="space-y-5 pt-6">
+              {/* Halvgarderingar */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Halvgarderingar</p>
+                  <p className="text-muted-foreground text-xs">
+                    2 val per match · 2 kr/st
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    className="border-input flex h-8 w-8 items-center justify-center rounded-md border disabled:opacity-40"
+                    disabled={halvgarderingar === 0}
+                    onClick={() =>
+                      setHalvgarderingar((h) => Math.max(0, h - 1))
+                    }
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="w-5 text-center text-sm font-bold">
+                    {halvgarderingar}
+                  </span>
+                  <button
+                    className="border-input flex h-8 w-8 items-center justify-center rounded-md border disabled:opacity-40"
+                    disabled={halvgarderingar + helgarderingar >= maxTotal}
+                    onClick={() =>
+                      setHalvgarderingar((h) =>
+                        Math.min(maxTotal - helgarderingar, h + 1)
+                      )
+                    }
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Helgarderingar */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium">Helgarderingar</p>
+                  <p className="text-muted-foreground text-xs">
+                    Alla 3 val per match · 3 kr/st
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    className="border-input flex h-8 w-8 items-center justify-center rounded-md border disabled:opacity-40"
+                    disabled={helgarderingar === 0}
+                    onClick={() =>
+                      setHelgarderingar((g) => Math.max(0, g - 1))
+                    }
+                  >
+                    <Minus className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="w-5 text-center text-sm font-bold">
+                    {helgarderingar}
+                  </span>
+                  <button
+                    className="border-input flex h-8 w-8 items-center justify-center rounded-md border disabled:opacity-40"
+                    disabled={halvgarderingar + helgarderingar >= maxTotal}
+                    onClick={() =>
+                      setHelgarderingar((g) =>
+                        Math.min(maxTotal - halvgarderingar, g + 1)
+                      )
+                    }
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Cost summary */}
+              <div className="bg-muted/50 space-y-1.5 rounded-lg px-4 py-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Antal rader</span>
+                  <span className="font-medium">
+                    {rows.toLocaleString('sv-SE')}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Kostnad</span>
+                  <span className="font-medium">
+                    {rows.toLocaleString('sv-SE')} kr
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {error && <p className="text-destructive text-sm">{error}</p>}
+
+          <Button
+            size="lg"
+            className="w-full"
+            disabled={isPending}
+            onClick={handleCreateSession}
+          >
+            {isPending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
+            {isPending ? 'Skapar...' : 'Skapa Session'}
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex min-h-dvh flex-col items-center px-6 py-10">
